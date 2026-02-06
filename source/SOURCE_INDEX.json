@@ -1,0 +1,81 @@
+{
+  "project": "Waterborne Disease Health Monitoring System",
+  "version": "1.0",
+  "created": "2026-02-06",
+  "components": {
+    "backend": {
+      "path": "backend/",
+      "description": "Django web application",
+      "files": [
+        "Health_Monitoring_System/manage.py",
+        "Health_Monitoring_System/settings.py",
+        "Health_Monitoring_System/urls.py",
+        "Health_Monitoring_System/wsgi.py",
+        "Health_Monitoring_System/asgi.py",
+        "web/models.py",
+        "web/views.py",
+        "web/forms.py",
+        "web/urls.py",
+        "web/utils.py",
+        "web/admin.py",
+        "web/apps.py",
+        "web/management/commands/populate_waterborne_diseases.py",
+        "web/templates/base.html",
+        "web/templates/home.html",
+        "web/templates/login.html",
+        "web/templates/predict.html",
+        "web/templates/signup.html",
+        "web/static/css/styles.css"
+      ]
+    },
+    "ml_models": {
+      "path": "ml-models/",
+      "description": "Machine learning models and training",
+      "files": [
+        "waterborne_disease_data.csv",
+        "train_waterborne_model.py",
+        "waterborne_disease_model.pkl",
+        "waterborne_artifacts.pkl",
+        "MLnote.ipynb",
+        "symptom_data.csv"
+      ]
+    },
+    "documentation": {
+      "path": "docs/",
+      "description": "Project documentation",
+      "files": [
+        "README.md",
+        "API.md",
+        "INSTALLATION.md",
+        "USER_GUIDE.md",
+        "ML_MODEL.md",
+        "DATABASE_SCHEMA.md"
+      ]
+    }
+  },
+  "key_features": [
+    "Real-time waterborne disease prediction",
+    "ML-based classification using Random Forest",
+    "TF-IDF text processing for symptoms",
+    "Comprehensive biochemical profiling",
+    "User authentication and authorization",
+    "Web-based prediction interface",
+    "Database-driven disease information"
+  ],
+  "database": {
+    "type": "SQLite3",
+    "default_location": "db.sqlite3",
+    "models": [
+      "DiseaseInfo",
+      "User (Django)"
+    ]
+  },
+  "technologies": [
+    "Django 5.0+",
+    "scikit-learn 1.3.2",
+    "pandas 2.1.3",
+    "numpy 1.24.3",
+    "scipy 1.11.4",
+    "Python 3.13.7"
+  ]
+}
