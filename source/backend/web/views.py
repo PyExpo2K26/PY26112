@@ -4,9 +4,10 @@ from django.shortcuts import render, redirect
 
 from .forms import SignupForm
 
-@login_required
 def home(request):
-	return render(request, 'web/home.html')
+    from .models import DiseaseInfo
+    disease_count = DiseaseInfo.objects.count()
+    return render(request, 'web/home.html', {'disease_count': disease_count})
 
 
 def signup(request):
@@ -35,6 +36,19 @@ def predict_water_quality(request):
             # Import here to avoid circular imports or loading issues at startup if libs missing
             from .utils import make_prediction
             prediction, remedy, bio_info = make_prediction(data)
+
+            # Save prediction if user is logged in
+            if request.user.is_authenticated and not prediction.startswith("Error"):
+                from .models import UserPrediction
+                UserPrediction.objects.create(
+                    user=request.user,
+                    symptom_text=data['Symptom_Text'],
+                    water_color=data['Water_Color'],
+                    water_odor=data['Water_Odor'],
+                    prediction=prediction,
+                    remedy=remedy
+                )
+
         except Exception as e:
             prediction = f"Error: {str(e)}"
 
