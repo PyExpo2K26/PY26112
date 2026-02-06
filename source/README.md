@@ -1,6 +1,8 @@
 # Waterborne Disease Health Monitoring System - Source Files
 
-This directory contains all backend, frontend, ML model, and related source files for **AquaHealth**, a Smart Community Health Monitoring and Early Warning System focused on waterborne disease prediction, **professionally organized with centralized data management**.
+Water-borne diseases such as cholera, typhoid, and diarrhea continue to pose serious health risks in rural and remote areas due to poor healthcare access, delayed disease reporting, low awareness, and lack of real-time monitoring systems. Limited internet connectivity and the absence of early warning mechanisms further worsen outbreak response times.
+
+**AquaHealth** is a smart, low-cost, and rural-friendly health monitoring system that can continuously track community health and environmental data, detect early signs of outbreaks, and provide timely alerts to health authorities and local communities. Such a system can enable faster intervention, reduce disease spread, and improve overall public health outcomes in underserved regions.
 
 ## 📁 Directory Structure (Professionally Organized)
 
