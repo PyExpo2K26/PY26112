@@ -1,0 +1,104 @@
+{% extends 'web/base.html' %}
+
+{% block title %}Dashboard | AquaHealth{% endblock %}
+
+{% block content %}
+<div class="row min-vh-50 align-items-center mb-5 animate-fade-in">
+    <div class="col-lg-6">
+        <h1 class="display-4 fw-bold mb-3">Intelligent Water <span class="text-gradient">Health Monitoring</span></h1>
+        <p class="lead text-muted mb-4">Protect yourself and your community with AI-powered water quality analysis and
+            disease risk assessment.</p>
+        <div class="glass-card p-3 mb-4 d-inline-block">
+            <span class="h2 fw-bold text-primary">{{ disease_count }}</span>
+            <span class="text-muted ms-2">Diseases Monitored in Real-time</span>
+        </div>
+        <div class="d-flex gap-3">
+            <a href="{% url 'predict' %}" class="btn btn-primary-gradient px-4 py-3">
+                <i class="bi bi-shield-check me-2"></i>Start Diagnosis
+            </a>
+            <a href="#features" class="btn btn-outline-secondary px-4 py-3 rounded-pill">Learn More</a>
+        </div>
+    </div>
+    <div class="col-lg-6 d-none d-lg-block">
+        <div class="p-5 glass-card text-center">
+            <i class="bi bi-activity text-primary display-1"></i>
+            <h3 class="mt-4">AquaHealth System</h3>
+            <p class="text-secondary">**AquaHealth**: A Smart Community Health Monitoring and Early Warning System
+                designed for rural health surveillance.</p>
+            <div class="mt-4 text-start">
+                <small class="text-muted"><i class="bi bi-check2-circle me-2 text-success"></i>AI/ML Outbreak
+                    Prediction</small><br>
+                <small class="text-muted"><i class="bi bi-check2-circle me-2 text-success"></i>Real-time Warning
+                    Alerts</small><br>
+                <small class="text-muted"><i class="bi bi-check2-circle me-2 text-success"></i>Data-driven Decision
+                    Support</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="features" class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="glass-card p-4 h-100">
+            <div class="bg-primary bg-opacity-10 p-3 rounded-3 d-inline-block mb-3">
+                <i class="bi bi-search text-primary h4 mb-0"></i>
+            </div>
+            <h4>Early Detection</h4>
+            <p class="text-muted">Identify potential water-borne diseases before they escalate into serious health
+                issues using AI/ML patterns.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-card p-4 h-100">
+            <div class="bg-success bg-opacity-10 p-3 rounded-3 d-inline-block mb-3">
+                <i class="bi bi-heart-pulse text-success h4 mb-0"></i>
+            </div>
+            <h4>Remedy Suggested</h4>
+            <p class="text-muted">Receive immediate advice and suggested remedies based on clinical knowledge stored in
+                our system.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-card p-4 h-100">
+            <div class="bg-info bg-opacity-10 p-3 rounded-3 d-inline-block mb-3">
+                <i class="bi bi-graph-up text-info h4 mb-0"></i>
+            </div>
+            <h4>Outbreak Prediction</h4>
+            <p class="text-muted">Uses historical data and environmental indicators (water quality, rainfall) to predict
+                potential outbreaks.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5 animate-fade-in">
+    <div class="col-12">
+        <div class="glass-card p-5">
+            <h2 class="mb-4 text-gradient">System Details & Objectives</h2>
+            <div class="row">
+                <div class="col-md-6 border-end">
+                    <h5>Key Objectives</h5>
+                    <ul class="text-secondary">
+                        <li>Monitor community health indicators related to water-borne diseases.</li>
+                        <li>Provide real-time alerts and warnings to communities and authorities.</li>
+                        <li>Support data-driven decision-making through visual dashboards.</li>
+                        <li>Ensure inclusive and rural-friendly health surveillance design.</li>
+                    </ul>
+                </div>
+                <div class="col-md-6 ps-md-4">
+                    <h5>Database Connectivity</h5>
+                    <p class="text-muted">The system is currently connected to the local health monitoring database.</p>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="p-2 bg-success rounded-circle me-3" style="width: 12px; height: 12px;"></div>
+                        <span class="fw-bold">Database Status: Online</span>
+                    </div>
+                    <p class="small text-secondary">
+                        <i class="bi bi-database me-2"></i><strong>Monitored Disease Profiles:</strong> {{ disease_count
+                        }}<br>
+                        <i class="bi bi-person-check me-2"></i><strong>System Mode:</strong> Operational Tracking
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

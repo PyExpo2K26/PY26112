@@ -1,6 +1,6 @@
 # Waterborne Disease Health Monitoring System - Source Files
 
-This directory contains all backend, frontend, ML model, and related source files for the Smart Community Health Monitoring and Early Warning System focused on waterborne disease prediction, **professionally organized with centralized data management**.
+This directory contains all backend, frontend, ML model, and related source files for **AquaHealth**, a Smart Community Health Monitoring and Early Warning System focused on waterborne disease prediction, **professionally organized with centralized data management**.
 
 ## 📁 Directory Structure (Professionally Organized)
 

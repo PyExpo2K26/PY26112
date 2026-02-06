@@ -1,6 +1,6 @@
 Project Overview:
 
-Water-borne diseases remain a major public health challenge in rural and remote areas due to limited healthcare infrastructure, delayed medical reporting, poor connectivity, and lack of real-time monitoring. This project proposes a Smart Community Health Monitoring and Early Warning System that leverages technology, data, and community participation to detect, predict, and prevent outbreaks of water-borne diseases.
+Water-borne diseases remain a major public health challenge in rural and remote areas due to limited healthcare infrastructure, delayed medical reporting, poor connectivity, and lack of real-time monitoring. This project proposes **AquaHealth**, a Smart Community Health Monitoring and Early Warning System that leverages technology, data, and community participation to detect, predict, and prevent outbreaks of water-borne diseases.
 
 The system focuses on real-time data collection, AI/ML-powered disease prediction, and early warning alerts to enable timely intervention by health authorities and local communities.
 

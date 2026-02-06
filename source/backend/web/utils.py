@@ -4,12 +4,57 @@ import os
 import pandas as pd
 import numpy as np
 from scipy.sparse import hstack
+from sklearn.base import BaseEstimator, TransformerMixin
 
 # Define model paths
-WATERBORNE_ARTIFACTS_PATH = r'c:\PY26112\Backend\MLnotebooks\waterborne_artifacts.pkl'
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parent.parent
+WATERBORNE_ARTIFACTS_PATH = BASE_DIR.parent / 'ml-models' / 'artifacts' / 'waterborne_artifacts.pkl'
 
 # Global variables to cache loaded artifacts
 _artifacts = None
+
+class ClinicalFeatureTransformer(BaseEstimator, TransformerMixin):
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X):
+        # Extract Age, Gender, Water_Source, Hygiene_Score, Water_Color, Water_Odor
+        features = []
+        for idx, row in X.iterrows():
+            water_color_code = row.get('Water_Color_Encoded', 0)
+            water_odor_code = row.get('Water_Odor_Encoded', 0)
+            gender_code = row.get('Gender_Encoded', 0)
+            water_source_code = row.get('Water_Source_Encoded', 0)
+            
+            feature_vector = [
+                float(row.get('Age', 0)),
+                float(gender_code),
+                float(water_source_code),
+                float(row.get('Hygiene_Score', 0)),
+                float(water_color_code),
+                float(water_odor_code)
+            ]
+            features.append(feature_vector)
+        return np.array(features, dtype=np.float64)
+
+class CustomUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        if module == 'Health_Monitoring_System.web.models':
+            module = 'web.models'
+        elif module == 'backend.web.models':
+            module = 'web.models'
+        elif module == '__main__' and name == 'ClinicalFeatureTransformer':
+            return ClinicalFeatureTransformer
+            
+        try:
+            return super().find_class(module, name)
+        except Exception as e:
+            # Fallback for unexpected module movements
+            if name == 'DiseaseInfo':
+                from .models import DiseaseInfo
+                return DiseaseInfo
+            raise
 
 def load_artifacts():
     """Load the trained waterborne disease model artifacts."""
@@ -17,10 +62,12 @@ def load_artifacts():
     if _artifacts is None:
         try:
             with open(WATERBORNE_ARTIFACTS_PATH, 'rb') as f:
-                _artifacts = pickle.load(f)
+                # Use custom unpickler to handle module movements
+                _artifacts = CustomUnpickler(f).load()
             print("Artifacts loaded successfully")
         except Exception as e:
-            print(f"Error loading artifacts: {e}")
+            import traceback
+            print(f"Error loading artifacts: {traceback.format_exc()}")
             return None
     return _artifacts
 
@@ -108,7 +155,7 @@ def make_prediction(data_dict):
             from .models import DiseaseInfo
             import json
             
-            info = DiseaseInfo.objects.get(name=disease_name)
+            info = DiseaseInfo.objects.get(name__iexact=disease_name)
             remedy = info.remedy
             
             # Parse bio profile
