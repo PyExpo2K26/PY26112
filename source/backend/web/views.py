@@ -5,9 +5,24 @@ from django.shortcuts import render, redirect
 from .forms import SignupForm
 
 def home(request):
+    import json
     from .models import DiseaseInfo
-    disease_count = DiseaseInfo.objects.count()
-    return render(request, 'web/home.html', {'disease_count': disease_count})
+    diseases = DiseaseInfo.objects.all()
+    
+    # Process bio_profiles for template display
+    for disease in diseases:
+        try:
+            raw_bio = json.loads(disease.bio_profile) if disease.bio_profile else {}
+            # Format keys for clean display in template
+            disease.parsed_bio = {k.replace('_', ' '): v for k, v in raw_bio.items()}
+        except:
+            disease.parsed_bio = {}
+            
+    disease_count = diseases.count()
+    return render(request, 'web/home.html', {
+        'disease_count': disease_count,
+        'diseases': diseases
+    })
 
 
 def signup(request):

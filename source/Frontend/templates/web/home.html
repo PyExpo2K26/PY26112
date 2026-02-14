@@ -8,9 +8,11 @@
         <h1 class="display-4 fw-bold mb-3">Intelligent Water <span class="text-gradient">Health Monitoring</span></h1>
         <p class="lead text-muted mb-4">Protect yourself and your community with AI-powered water quality analysis and
             disease risk assessment.</p>
-        <div class="glass-card p-3 mb-4 d-inline-block">
+        <div class="glass-card p-3 mb-4 d-inline-block hover-scale cursor-pointer shadow-sm" data-bs-toggle="modal"
+            data-bs-target="#diseasesModal">
             <span class="h2 fw-bold text-primary">{{ disease_count }}</span>
-            <span class="text-muted ms-2">Diseases Monitored in Real-time</span>
+            <span class="text-muted ms-2">Diseases Monitored in Real-time <i
+                    class="bi bi-info-circle ms-1 small"></i></span>
         </div>
         <div class="d-flex gap-3">
             <a href="{% url 'predict' %}" class="btn btn-primary-gradient px-4 py-3">
@@ -142,4 +144,80 @@
         </div>
     </div>
 </div>
+
+<!-- Diseases Monitored Modal -->
+<div class="modal fade" id="diseasesModal" tabindex="-1" aria-labelledby="diseasesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+            <div class="modal-header bg-primary-gradient p-4 border-0">
+                <h5 class="modal-title text-white fw-bold" id="diseasesModalLabel">
+                    <i class="bi bi-shield-shaded me-2"></i>Monitored Disease Profiles
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light" style="max-height: 70vh; overflow-y: auto;">
+                <div class="row g-4">
+                    {% for disease in diseases %}
+                    <div class="col-12">
+                        <div class="card border-0 rounded-3 shadow-sm mb-3">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h4 class="text-primary fw-bold mb-0">{{ disease.name }}</h4>
+                                    <span class="badge bg-primary-subtle text-primary rounded-pill px-3">Active
+                                        Monitoring</span>
+                                </div>
+                                <div class="mb-3">
+                                    <h6 class="fw-bold text-muted small text-uppercase">Recommended Remedy</h6>
+                                    <p class="text-secondary mb-0">{{ disease.remedy }}</p>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-muted small text-uppercase mb-2">Biochemical Profile
+                                        Indicators</h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {% for key, value in disease.parsed_bio.items %}
+                                        <div class="p-2 bg-light border rounded-3 d-flex align-items-center">
+                                            <span class="text-muted small me-2">{{ key }}:</span>
+                                            <span class="fw-bold text-dark">{{ value }}</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-5">
+                        <i class="bi bi-info-circle text-muted display-4"></i>
+                        <p class="text-muted mt-3">No disease profiles found in the database.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-3 bg-white">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-modal="modal"
+                    data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .hover-scale {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hover-scale:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .bg-primary-subtle {
+        background-color: rgba(13, 110, 253, 0.1) !important;
+    }
+</style>
 {% endblock %}
