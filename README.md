@@ -1,27 +1,10 @@
 Project Overview:
 
-Water-borne diseases remain a major public health challenge in rural and remote areas due to limited healthcare infrastructure, delayed medical reporting, poor connectivity, and lack of real-time monitoring. This project proposes **AquaHealth**, a Smart Community Health Monitoring and Early Warning System that leverages technology, data, and community participation to detect, predict, and prevent outbreaks of water-borne diseases.
+Water-borne diseases such as cholera, typhoid, and diarrhea continue to pose serious health risks in rural and remote areas due to poor healthcare access, delayed disease reporting, low awareness, and lack of real-time monitoring systems. Limited internet connectivity and the absence of early warning mechanisms further worsen outbreak response times.
 
-The system focuses on real-time data collection, AI/ML-powered disease prediction, and early warning alerts to enable timely intervention by health authorities and local communities.
+**AquaHealth** is a smart, low-cost, and rural-friendly health monitoring system that can continuously track community health and environmental data, detect early signs of outbreaks, and provide timely alerts to health authorities and local communities. Such a system can enable faster intervention, reduce disease spread, and improve overall public health outcomes in underserved regions.
 
 Objectives:
-
-1. Monitor community health indicators related to water-borne diseases
-2. Detect early signs of disease outbreaks using AI/ML models
-3. Provide real-time alerts and warnings to communities and authorities
-4. Support data-driven decision-making through dashboards
-5. Ensure inclusivity, scalability, and usability in rural environments
-
-
-Problem Statement:
-
-1. Rural regions often suffer from:
-2. Limited access to healthcare facilities
-3. Delayed disease reporting
-4. Poor internet connectivity
-5. Lack of awareness and early detection mechanisms
-
-These challenges lead to delayed responses to water-borne disease outbreaks such as cholera, typhoid, and diarrhea. This project aims to bridge this gap by building a smart health surveillance platform tailored for rural settings.
 
 Proposed Solution:
 
