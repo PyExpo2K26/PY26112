@@ -1,145 +1,840 @@
 {% extends 'web/base.html' %}
+{% load static %}
 
 {% block title %}Dashboard | AquaHealth{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Hero Section Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInRight {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes pulse-ring {
+        0% {
+            transform: scale(0.95);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1);
+            opacity: 0.7;
+        }
+        100% {
+            transform: scale(0.95);
+            opacity: 1;
+        }
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-20px);
+        }
+    }
+
+    @keyframes shimmer {
+        0% {
+            background-position: -1000px 0;
+        }
+        100% {
+            background-position: 1000px 0;
+        }
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .animate-fade-in-right {
+        animation: fadeInRight 0.8s ease-out;
+    }
+
+    .animate-delay-1 {
+        animation-delay: 0.2s;
+        opacity: 0;
+        animation-fill-mode: forwards;
+    }
+
+    .animate-delay-2 {
+        animation-delay: 0.4s;
+        opacity: 0;
+        animation-fill-mode: forwards;
+    }
+
+    .animate-delay-3 {
+        animation-delay: 0.6s;
+        opacity: 0;
+        animation-fill-mode: forwards;
+    }
+
+    /* Stats Card Enhancement */
+    .stat-card {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        animation: shimmer 3s infinite;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        border-color: rgba(102, 126, 234, 0.5);
+    }
+
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Feature Card Enhancement */
+    .feature-card {
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 1rem;
+        font-size: 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    /* Floating Animation for Hero Image */
+    .float-animation {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    /* Progress Bar Animation */
+    .progress-animated {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .progress-animated::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: shimmer 2s infinite;
+    }
+
+    /* Status Indicator Pulse */
+    .status-pulse {
+        animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+    }
+
+    /* Gradient Text */
+    .text-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .text-gradient-success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .text-gradient-info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Timeline Connector */
+    .timeline-connector {
+        position: relative;
+    }
+
+    .timeline-connector::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        transform: translateX(-50%);
+    }
+
+    /* Counter Animation */
+    .counter {
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Responsive Typography */
+    @media (max-width: 768px) {
+        .stat-number {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row min-vh-50 align-items-center mb-5 animate-fade-in">
-    <div class="col-lg-6">
-        <h1 class="display-4 fw-bold mb-3">Intelligent Water <span class="text-gradient">Health Monitoring</span></h1>
-        <p class="lead text-muted mb-4">Protect yourself and your community with AI-powered water quality analysis and
-            disease risk assessment.</p>
-        <div class="glass-card p-3 mb-4 d-inline-block">
-            <span class="h2 fw-bold text-primary">{{ disease_count }}</span>
-            <span class="text-muted ms-2">Diseases Monitored in Real-time</span>
+<!-- Hero Section -->
+<section class="row min-vh-50 align-items-center mb-5 animate-fade-in-up">
+    <div class="col-lg-6 mb-4 mb-lg-0">
+        <div class="mb-3">
+            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                <i class="bi bi-stars me-2"></i>AI-Powered Health Intelligence
+            </span>
         </div>
-        <div class="d-flex gap-3">
-            <a href="{% url 'predict' %}" class="btn btn-primary-gradient px-4 py-3">
-                <i class="bi bi-shield-check me-2"></i>Start Diagnosis
-            </a>
-            <a href="#features" class="btn btn-outline-secondary px-4 py-3 rounded-pill">Learn More</a>
-        </div>
-    </div>
-    <div class="col-lg-6 d-none d-lg-block">
-        <div class="p-5 glass-card text-center">
-            <i class="bi bi-activity text-primary display-1"></i>
-            <h3 class="mt-4">AquaHealth System</h3>
-            <p class="text-secondary">**AquaHealth**: A Smart Community Health Monitoring and Early Warning System
-                designed for rural health surveillance.</p>
-            <div class="mt-4 text-start">
-                <small class="text-muted"><i class="bi bi-check2-circle me-2 text-success"></i>AI/ML Outbreak
-                    Prediction</small><br>
-                <small class="text-muted"><i class="bi bi-check2-circle me-2 text-success"></i>Real-time Warning
-                    Alerts</small><br>
-                <small class="text-muted"><i class="bi bi-check2-circle me-2 text-success"></i>Data-driven Decision
-                    Support</small>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="features" class="row g-4 mb-5">
-    <div class="col-md-4">
-        <div class="glass-card p-4 h-100">
-            <div class="bg-primary bg-opacity-10 p-3 rounded-3 d-inline-block mb-3">
-                <i class="bi bi-search text-primary h4 mb-0"></i>
-            </div>
-            <h4>Early Detection</h4>
-            <p class="text-muted">Identify potential water-borne diseases before they escalate into serious health
-                issues using AI/ML patterns.</p>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="glass-card p-4 h-100">
-            <div class="bg-success bg-opacity-10 p-3 rounded-3 d-inline-block mb-3">
-                <i class="bi bi-heart-pulse text-success h4 mb-0"></i>
-            </div>
-            <h4>Remedy Suggested</h4>
-            <p class="text-muted">Receive immediate advice and suggested remedies based on clinical knowledge stored in
-                our system.</p>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="glass-card p-4 h-100">
-            <div class="bg-info bg-opacity-10 p-3 rounded-3 d-inline-block mb-3">
-                <i class="bi bi-graph-up text-info h4 mb-0"></i>
-            </div>
-            <h4>Outbreak Prediction</h4>
-            <p class="text-muted">Uses historical data and environmental indicators (water quality, rainfall) to predict
-                potential outbreaks.</p>
-        </div>
-    </div>
-</div>
-
-<div class="row mb-5 animate-fade-in">
-    <div class="col-12">
-        <div class="glass-card p-5">
-            <div class="row g-5">
-                <div class="col-lg-6">
-                    <h2 class="mb-4 text-gradient">The Challenge</h2>
-                    <p class="text-secondary lead">
-                        Water-borne diseases such as cholera, typhoid, and diarrhea continue to pose serious health
-                        risks in rural and remote areas due to:
-                    </p>
-                    <ul class="text-muted list-unstyled">
-                        <li class="mb-2"><i class="bi bi-x-circle text-danger me-2"></i>Poor healthcare access &
-                            awareness</li>
-                        <li class="mb-2"><i class="bi bi-x-circle text-danger me-2"></i>Delayed disease reporting</li>
-                        <li class="mb-2"><i class="bi bi-x-circle text-danger me-2"></i>Lack of real-time monitoring
-                            systems</li>
-                        <li class="mb-2"><i class="bi bi-x-circle text-danger me-2"></i>Limited internet connectivity
-                        </li>
-                    </ul>
+        <h1 class="display-3 fw-bold mb-4">
+            Intelligent Water 
+            <span class="text-gradient d-block">Health Monitoring</span>
+        </h1>
+        <p class="lead text-muted mb-4 fs-5">
+            Protect yourself and your community with AI-powered water quality analysis and disease risk assessment. Real-time monitoring that saves lives.
+        </p>
+        
+        <!-- Stats Card -->
+        <div class="stat-card p-4 mb-4">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <div class="stat-number counter" data-target="{{ disease_count }}">0</div>
                 </div>
-                <div class="col-lg-6">
-                    <h2 class="mb-4 text-gradient">Our Smart Solution</h2>
-                    <p class="text-secondary lead">
-                        **AquaHealth** is a low-cost, rural-friendly health monitoring system designed to:
-                    </p>
-                    <ul class="text-muted list-unstyled">
-                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Track community health &
-                            environmental data</li>
-                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Detect early signs of
-                            outbreaks</li>
-                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Provide timely alerts to
-                            authorities</li>
-                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Enable faster, life-saving
-                            interventions</li>
-                    </ul>
+                <div class="col">
+                    <h6 class="text-muted mb-1">Disease Profiles</h6>
+                    <p class="text-secondary small mb-0">Monitored in Real-time</p>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mb-5 animate-fade-in">
-    <div class="col-12">
-        <div class="glass-card p-5">
-            <h2 class="mb-4 text-gradient">System Objectives & Connectivity</h2>
-            <div class="row">
-                <div class="col-md-6 border-end">
-                    <h5>Key Objectives</h5>
-                    <ul class="text-secondary">
-                        <li>Monitor community health indicators related to water-borne diseases.</li>
-                        <li>Provide real-time alerts and warnings to communities and authorities.</li>
-                        <li>Support data-driven decision-making through visual dashboards.</li>
-                        <li>Ensure inclusive and rural-friendly health surveillance design.</li>
-                    </ul>
-                </div>
-                <div class="col-md-6 ps-md-4">
-                    <h5>Database Connectivity</h5>
-                    <p class="text-muted">The system is currently connected to the local health monitoring database.</p>
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="p-2 bg-success rounded-circle me-3" style="width: 12px; height: 12px;"></div>
-                        <span class="fw-bold">Database Status: Online</span>
+                <div class="col-auto">
+                    <div class="status-pulse">
+                        <i class="bi bi-activity text-primary fs-1"></i>
                     </div>
-                    <p class="small text-secondary">
-                        <i class="bi bi-database me-2"></i><strong>Monitored Disease Profiles:</strong> {{ disease_count
-                        }}<br>
-                        <i class="bi bi-person-check me-2"></i><strong>System Mode:</strong> Operational Tracking
-                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Buttons -->
+        <div class="d-flex flex-wrap gap-3">
+            <a href="{% url 'predict' %}" class="btn btn-primary-gradient px-4 py-3 rounded-pill shadow-lg">
+                <i class="bi bi-shield-check me-2"></i>Start Diagnosis Now
+            </a>
+            <a href="#features" class="btn btn-outline-secondary px-4 py-3 rounded-pill">
+                <i class="bi bi-arrow-down me-2"></i>Explore Features
+            </a>
+        </div>
+
+        <!-- Quick Stats Row -->
+        <div class="row g-3 mt-4">
+            <div class="col-4">
+                <div class="text-center">
+                    <div class="h3 fw-bold text-primary mb-0">98%</div>
+                    <small class="text-muted">Accuracy</small>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="text-center">
+                    <div class="h3 fw-bold text-success mb-0">24/7</div>
+                    <small class="text-muted">Monitoring</small>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="text-center">
+                    <div class="h3 fw-bold text-info mb-0">&lt;5min</div>
+                    <small class="text-muted">Response</small>
                 </div>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- Hero Visual -->
+    <div class="col-lg-6">
+        <div class="glass-card p-5 text-center position-relative float-animation">
+            <!-- Decorative Elements -->
+            <div class="position-absolute top-0 start-0 m-3">
+                <i class="bi bi-droplet-fill text-primary opacity-25" style="font-size: 3rem;"></i>
+            </div>
+            <div class="position-absolute bottom-0 end-0 m-3">
+                <i class="bi bi-heart-pulse-fill text-danger opacity-25" style="font-size: 3rem;"></i>
+            </div>
+
+            <!-- Main Icon -->
+            <div class="mb-4">
+                <div class="bg-primary bg-opacity-10 d-inline-flex p-4 rounded-circle">
+                    <i class="bi bi-activity text-primary display-1"></i>
+                </div>
+            </div>
+
+            <h3 class="fw-bold mb-3">AquaHealth System</h3>
+            <p class="text-secondary mb-4">
+                A Smart Community Health Monitoring and Early Warning System designed for rural health surveillance and proactive disease prevention.
+            </p>
+
+            <!-- Features List -->
+            <div class="text-start">
+                <div class="d-flex align-items-center mb-3 p-3 bg-success bg-opacity-10 rounded">
+                    <i class="bi bi-cpu text-success fs-4 me-3"></i>
+                    <div>
+                        <div class="fw-semibold">AI/ML Outbreak Prediction</div>
+                        <small class="text-muted">Machine learning algorithms detect patterns</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center mb-3 p-3 bg-warning bg-opacity-10 rounded">
+                    <i class="bi bi-bell text-warning fs-4 me-3"></i>
+                    <div>
+                        <div class="fw-semibold">Real-time Warning Alerts</div>
+                        <small class="text-muted">Instant notifications to authorities</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center p-3 bg-info bg-opacity-10 rounded">
+                    <i class="bi bi-bar-chart text-info fs-4 me-3"></i>
+                    <div>
+                        <div class="fw-semibold">Data-driven Decision Support</div>
+                        <small class="text-muted">Visual dashboards for actionable insights</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="mb-5">
+    <div class="text-center mb-5">
+        <h2 class="display-5 fw-bold mb-3">
+            <span class="text-gradient">Core Capabilities</span>
+        </h2>
+        <p class="lead text-muted">Comprehensive health monitoring powered by artificial intelligence</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Feature 1: Early Detection -->
+        <div class="col-md-4 animate-fade-in-up animate-delay-1">
+            <div class="feature-card glass-card p-4 h-100 rounded-3">
+                <div class="feature-icon bg-primary bg-opacity-10 mb-4">
+                    <i class="bi bi-search text-primary"></i>
+                </div>
+                <h4 class="fw-bold mb-3">Early Detection</h4>
+                <p class="text-muted mb-4">
+                    Identify potential water-borne diseases before they escalate into serious health issues using advanced AI/ML pattern recognition and predictive analytics.
+                </p>
+                <ul class="list-unstyled small text-secondary">
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i>Pattern Recognition</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i>Predictive Analytics</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i>Risk Assessment</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Feature 2: Remedy Suggested -->
+        <div class="col-md-4 animate-fade-in-up animate-delay-2">
+            <div class="feature-card glass-card p-4 h-100 rounded-3">
+                <div class="feature-icon bg-success bg-opacity-10 mb-4">
+                    <i class="bi bi-heart-pulse text-success"></i>
+                </div>
+                <h4 class="fw-bold mb-3">Smart Remedies</h4>
+                <p class="text-muted mb-4">
+                    Receive immediate, evidence-based advice and suggested remedies based on clinical knowledge and best practices stored in our comprehensive medical database.
+                </p>
+                <ul class="list-unstyled small text-secondary">
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Clinical Guidelines</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Treatment Protocols</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Prevention Tips</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Feature 3: Outbreak Prediction -->
+        <div class="col-md-4 animate-fade-in-up animate-delay-3">
+            <div class="feature-card glass-card p-4 h-100 rounded-3">
+                <div class="feature-icon bg-info bg-opacity-10 mb-4">
+                    <i class="bi bi-graph-up-arrow text-info"></i>
+                </div>
+                <h4 class="fw-bold mb-3">Outbreak Forecasting</h4>
+                <p class="text-muted mb-4">
+                    Leverage historical data and environmental indicators including water quality metrics, rainfall patterns, and temperature data to predict potential outbreaks.
+                </p>
+                <ul class="list-unstyled small text-secondary">
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-info me-2"></i>Historical Analysis</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-info me-2"></i>Environmental Monitoring</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-info me-2"></i>Trend Forecasting</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Problem & Solution Section -->
+<section class="mb-5 animate-fade-in-up">
+    <div class="glass-card p-5 rounded-4">
+        <div class="row g-5 align-items-center">
+            <!-- The Challenge -->
+            <div class="col-lg-6">
+                <div class="mb-4">
+                    <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill mb-3">
+                        <i class="bi bi-exclamation-triangle me-2"></i>The Challenge
+                    </span>
+                    <h2 class="display-6 fw-bold text-gradient-primary mb-4">
+                        Critical Health Crisis
+                    </h2>
+                </div>
+                
+                <p class="lead text-secondary mb-4">
+                    Water-borne diseases such as cholera, typhoid, and diarrhea continue to pose serious health risks in rural and remote areas.
+                </p>
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="d-flex align-items-start p-3 bg-danger bg-opacity-5 rounded-3">
+                            <i class="bi bi-x-circle-fill text-danger fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Limited Healthcare Access</h6>
+                                <p class="text-muted small mb-0">Remote communities lack proper medical facilities and health awareness programs</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex align-items-start p-3 bg-danger bg-opacity-5 rounded-3">
+                            <i class="bi bi-x-circle-fill text-danger fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Delayed Disease Reporting</h6>
+                                <p class="text-muted small mb-0">Traditional reporting systems cause critical delays in outbreak detection</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex align-items-start p-3 bg-danger bg-opacity-5 rounded-3">
+                            <i class="bi bi-x-circle-fill text-danger fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">No Real-time Monitoring</h6>
+                                <p class="text-muted small mb-0">Absence of continuous health surveillance systems leads to reactive responses</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex align-items-start p-3 bg-danger bg-opacity-5 rounded-3">
+                            <i class="bi bi-x-circle-fill text-danger fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Connectivity Challenges</h6>
+                                <p class="text-muted small mb-0">Limited internet access hampers data collection and information sharing</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vertical Divider for Desktop -->
+            <div class="col-lg-1 d-none d-lg-block">
+                <div class="h-100 w-1 bg-gradient-primary mx-auto" style="width: 2px;"></div>
+            </div>
+
+            <!-- Our Solution -->
+            <div class="col-lg-5">
+                <div class="mb-4">
+                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill mb-3">
+                        <i class="bi bi-lightbulb me-2"></i>Our Solution
+                    </span>
+                    <h2 class="display-6 fw-bold text-gradient-success mb-4">
+                        Smart Innovation
+                    </h2>
+                </div>
+
+                <p class="lead text-secondary mb-4">
+                    <strong>AquaHealth</strong> is a low-cost, rural-friendly health monitoring system.
+                </p>
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="d-flex align-items-start p-3 bg-success bg-opacity-5 rounded-3">
+                            <i class="bi bi-check-circle-fill text-success fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Comprehensive Data Tracking</h6>
+                                <p class="text-muted small mb-0">Monitor community health and environmental data in real-time</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex align-items-start p-3 bg-success bg-opacity-5 rounded-3">
+                            <i class="bi bi-check-circle-fill text-success fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Early Warning System</h6>
+                                <p class="text-muted small mb-0">Detect early signs of outbreaks before they spread</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex align-items-start p-3 bg-success bg-opacity-5 rounded-3">
+                            <i class="bi bi-check-circle-fill text-success fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Instant Alert Delivery</h6>
+                                <p class="text-muted small mb-0">Provide timely alerts to health authorities and stakeholders</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex align-items-start p-3 bg-success bg-opacity-5 rounded-3">
+                            <i class="bi bi-check-circle-fill text-success fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Life-saving Interventions</h6>
+                                <p class="text-muted small mb-0">Enable faster responses that save lives and prevent epidemics</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- System Objectives & Status Section -->
+<section class="mb-5 animate-fade-in-up">
+    <div class="glass-card p-5 rounded-4">
+        <div class="text-center mb-5">
+            <h2 class="display-6 fw-bold text-gradient mb-3">System Intelligence Center</h2>
+            <p class="lead text-muted">Objectives, connectivity status, and operational metrics</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Key Objectives -->
+            <div class="col-lg-6">
+                <div class="h-100 p-4 bg-primary bg-opacity-5 rounded-3">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3">
+                            <i class="bi bi-bullseye text-primary fs-4"></i>
+                        </div>
+                        <h4 class="fw-bold mb-0">Key Objectives</h4>
+                    </div>
+
+                    <div class="vstack gap-3">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-1-circle-fill text-primary me-3 fs-5"></i>
+                            <div>
+                                <h6 class="fw-semibold mb-1">Health Indicator Monitoring</h6>
+                                <p class="text-muted small mb-0">Continuously track community health indicators related to water-borne diseases using multi-source data integration.</p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-2-circle-fill text-primary me-3 fs-5"></i>
+                            <div>
+                                <h6 class="fw-semibold mb-1">Real-time Alert System</h6>
+                                <p class="text-muted small mb-0">Provide immediate warnings to communities and health authorities through multiple communication channels.</p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-3-circle-fill text-primary me-3 fs-5"></i>
+                            <div>
+                                <h6 class="fw-semibold mb-1">Data-driven Decision Making</h6>
+                                <p class="text-muted small mb-0">Support evidence-based interventions through comprehensive visual dashboards and analytics tools.</p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-4-circle-fill text-primary me-3 fs-5"></i>
+                            <div>
+                                <h6 class="fw-semibold mb-1">Inclusive Design</h6>
+                                <p class="text-muted small mb-0">Ensure rural-friendly, accessible health surveillance that works in low-resource environments.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Connectivity & Status -->
+            <div class="col-lg-6">
+                <div class="h-100 p-4 bg-success bg-opacity-5 rounded-3">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-success bg-opacity-10 p-3 rounded-3 me-3">
+                            <i class="bi bi-hdd-network text-success fs-4"></i>
+                        </div>
+                        <h4 class="fw-bold mb-0">System Status</h4>
+                    </div>
+
+                    <!-- Status Indicator -->
+                    <div class="alert alert-success border-0 mb-4" role="alert">
+                        <div class="d-flex align-items-center">
+                            <div class="status-pulse bg-success rounded-circle me-3" style="width: 16px; height: 16px;"></div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-bold">Database Status: Online</h6>
+                                <small class="text-muted">Connected to local health monitoring database</small>
+                            </div>
+                            <i class="bi bi-check-circle-fill text-success fs-3"></i>
+                        </div>
+                    </div>
+
+                    <!-- Operational Metrics -->
+                    <div class="vstack gap-3">
+                        <div class="p-3 bg-white rounded-3 shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-database-fill text-primary me-2"></i>
+                                    <span class="fw-semibold">Disease Profiles</span>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">{{ disease_count }}</span>
+                            </div>
+                            <div class="progress progress-animated" style="height: 6px;">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-white rounded-3 shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-gear-fill text-success me-2"></i>
+                                    <span class="fw-semibold">System Mode</span>
+                                </div>
+                                <span class="badge bg-success rounded-pill">Operational</span>
+                            </div>
+                            <small class="text-muted">Active tracking and monitoring enabled</small>
+                        </div>
+
+                        <div class="p-3 bg-white rounded-3 shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-clock-history text-info me-2"></i>
+                                    <span class="fw-semibold">Last Sync</span>
+                                </div>
+                                <span class="badge bg-info rounded-pill">Just now</span>
+                            </div>
+                            <small class="text-muted">Real-time data synchronization active</small>
+                        </div>
+
+                        <div class="p-3 bg-white rounded-3 shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-shield-check text-warning me-2"></i>
+                                    <span class="fw-semibold">Security Level</span>
+                                </div>
+                                <span class="badge bg-warning rounded-pill">Encrypted</span>
+                            </div>
+                            <small class="text-muted">End-to-end encryption enabled</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Stats Row -->
+        <div class="row g-3 mt-4">
+            <div class="col-md-3 col-6">
+                <div class="text-center p-3 bg-white rounded-3 shadow-sm">
+                    <i class="bi bi-people-fill text-primary fs-2 mb-2"></i>
+                    <div class="h4 fw-bold mb-0 counter" data-target="10000">0</div>
+                    <small class="text-muted">Users Protected</small>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-center p-3 bg-white rounded-3 shadow-sm">
+                    <i class="bi bi-bar-chart-fill text-success fs-2 mb-2"></i>
+                    <div class="h4 fw-bold mb-0 counter" data-target="500">0</div>
+                    <small class="text-muted">Data Points Daily</small>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-center p-3 bg-white rounded-3 shadow-sm">
+                    <i class="bi bi-lightning-fill text-warning fs-2 mb-2"></i>
+                    <div class="h4 fw-bold mb-0 counter" data-target="99">0</div>
+                    <small class="text-muted">% Uptime</small>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-center p-3 bg-white rounded-3 shadow-sm">
+                    <i class="bi bi-trophy-fill text-danger fs-2 mb-2"></i>
+                    <div class="h4 fw-bold mb-0 counter" data-target="95">0</div>
+                    <small class="text-muted">% Success Rate</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section class="mb-5">
+    <div class="glass-card p-5 text-center rounded-4" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <i class="bi bi-heart-pulse-fill text-primary display-3 mb-4"></i>
+                <h2 class="display-5 fw-bold mb-3">Ready to Protect Your Community?</h2>
+                <p class="lead text-muted mb-4">
+                    Start monitoring water-borne disease risks in your area today. Early detection saves lives.
+                </p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'predict' %}" class="btn btn-primary btn-lg rounded-pill px-5">
+                        <i class="bi bi-play-circle me-2"></i>Get Started
+                    </a>
+                    <a href="#" class="btn btn-outline-primary btn-lg rounded-pill px-5">
+                        <i class="bi bi-book me-2"></i>Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Counter Animation
+    function animateCounter(element, target, duration = 2000) {
+        const start = 0;
+        const increment = target / (duration / 16);
+        let current = start;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                element.textContent = target;
+                clearInterval(timer);
+            } else {
+                element.textContent = Math.floor(current);
+            }
+        }, 16);
+    }
+
+    // Intersection Observer for scroll animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+                
+                // Trigger counter animations when section comes into view
+                const counters = entry.target.querySelectorAll('.counter');
+                counters.forEach(counter => {
+                    const target = parseInt(counter.getAttribute('data-target'));
+                    if (target) {
+                        animateCounter(counter, target);
+                    }
+                });
+                
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    // Observe all animated sections
+    document.addEventListener('DOMContentLoaded', () => {
+        const animatedElements = document.querySelectorAll('.animate-fade-in-up, .animate-fade-in-right');
+        animatedElements.forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href !== '#' && href !== '#!') {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }
+            });
+        });
+
+        // Add scroll effect to navbar
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            const navbar = document.querySelector('.glass-nav');
+            
+            if (navbar) {
+                if (currentScroll > 100) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            }
+            
+            lastScroll = currentScroll;
+        });
+
+        // Add hover effect to feature cards
+        const featureCards = document.querySelectorAll('.feature-card');
+        featureCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Parallax effect for floating animation
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const floatingElements = document.querySelectorAll('.float-animation');
+            floatingElements.forEach(el => {
+                el.style.transform = `translateY(${scrolled * 0.1}px)`;
+            });
+        });
+    });
+
+    // Add loading state handling
+    window.addEventListener('load', () => {
+        document.body.classList.add('loaded');
+    });
+</script>
 {% endblock %}

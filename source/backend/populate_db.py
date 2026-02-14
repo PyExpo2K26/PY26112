@@ -3,7 +3,7 @@ import django
 import json
 
 # Set up Django environment
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Health_Monitoring_System.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'aqua_health.settings')
 django.setup()
 
 from web.models import DiseaseInfo
