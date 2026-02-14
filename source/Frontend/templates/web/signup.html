@@ -1,6 +1,7 @@
 {% extends 'web/base.html' %}
 {% load static %}
 
+<<<<<<< HEAD
 {% block title %}Sign Up | AquaHealth{% endblock %}
 
 {% block extra_css %}
@@ -833,4 +834,102 @@
         });
     });
 </script>
+=======
+{% block title %}Create Account | AquaHealth{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center mb-5" style="min-height: 70vh;">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-lg rounded-4 glass-card overflow-hidden">
+            <div class="card-header bg-primary-gradient p-4 text-center border-0">
+                <div
+                    class="avatar-lg bg-white bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-3">
+                    <i class="bi bi-person-plus text-white fs-1"></i>
+                </div>
+                <h2 class="text-white fw-bold mb-0">Join AquaHealth</h2>
+                <p class="text-white-50 small mb-0">Start monitoring your community's health</p>
+            </div>
+            <div class="card-body p-4 p-lg-5 bg-white">
+                <form method="post" class="auth-form">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label fw-semibold text-muted small">
+                            {{ field.label }}
+                        </label>
+                        <div class="input-group input-group-lg border rounded-3 overflow-hidden">
+                            <span class="input-group-text bg-light border-0">
+                                {% if field.name == 'username' %}
+                                <i class="bi bi-person text-primary"></i>
+                                {% elif 'password' in field.name %}
+                                <i class="bi bi-shield-lock text-primary"></i>
+                                {% elif field.name == 'email' %}
+                                <i class="bi bi-envelope text-primary"></i>
+                                {% else %}
+                                <i class="bi bi-pencil text-primary"></i>
+                                {% endif %}
+                            </span>
+                            <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}"
+                                id="{{ field.id_for_label }}" class="form-control border-0 bg-transparent"
+                                placeholder="Enter {{ field.label }}">
+                        </div>
+                        {% if field.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ field.errors.0 }}
+                        </div>
+                        {% endif %}
+                        {% if field.help_text %}
+                        <div class="text-muted small mt-1">
+                            {{ field.help_text|safe }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-grid gap-2 mt-5">
+                        <button type="submit"
+                            class="btn btn-primary-gradient btn-lg rounded-pill fw-bold shadow-sm py-3 transition-transform">
+                            Create Account
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="text-muted small">
+                        Already have an account?
+                        <a href="{% url 'login' %}" class="text-primary fw-bold text-decoration-none">Sign in here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'home' %}" class="text-muted small text-decoration-none transition-all hover-translate">
+                <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .glass-card {
+        transition: all 0.3s ease;
+    }
+
+    .auth-form .input-group:focus-within {
+        border-color: #0d6efd !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+    }
+
+    .hover-translate:hover {
+        color: #0d6efd !important;
+        transform: translateX(-5px);
+    }
+
+    .transition-transform:hover {
+        transform: translateY(-2px);
+    }
+</style>
+>>>>>>> 6f1866dc5d3800c6e1692ed0061a0cdfe504e0f2
 {% endblock %}
