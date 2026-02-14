@@ -1,0 +1,40 @@
+{% extends 'monitoring/base.html' %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 4rem auto;">
+    <div class="card" style="text-align: center; padding: 40px;">
+        <h2 style="color: var(--gov-blue); margin-bottom: 20px;">Officer Login</h2>
+        <p style="color: #666; margin-bottom: 30px;">Access the secure Water Surveillance Portal</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div style="text-align: left; margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Username</label>
+                {{ form.username }}
+            </div>
+            <div style="text-align: left; margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Password</label>
+                {{ form.password }}
+            </div>
+
+            <button type="submit" class="btn" style="width: 100%; padding: 12px; font-size: 1rem;">Secure Login</button>
+        </form>
+    </div>
+    <p style="text-align: center; color: #888; margin-top: 20px; font-size: 0.9rem;">
+        Authorized Personnel Only<br>
+        Department of Water Sanitation
+    </p>
+</div>
+
+<style>
+    /* Login Form Styles Override */
+    input[type="text"],
+    input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+</style>
+{% endblock %}

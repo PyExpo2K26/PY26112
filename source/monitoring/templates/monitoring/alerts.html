@@ -1,0 +1,66 @@
+{% extends 'monitoring/base.html' %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>System Alerts</h2>
+        <div>
+            <span class="alert-badge alert-red" style="margin-right: 10px;">High Risk</span>
+            <span class="alert-badge alert-yellow">Moderate Risk</span>
+        </div>
+    </div>
+
+    {% if alerts %}
+    <table>
+        <thead>
+            <tr>
+                <th>Alert ID</th>
+                <th>Village</th>
+                <th>District</th>
+                <th>Risk Score</th>
+                <th>Alert Level</th>
+                <th>Date Generated</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alert in alerts %}
+            <tr>
+                <td>#{{ alert.id }}</td>
+                <td>{{ alert.village }}</td>
+                <td>{{ alert.district }}</td>
+                <td><strong>{{ alert.risk_score|floatformat:1 }}%</strong></td>
+                <td>
+                    <span
+                        class="alert-badge {% if alert.alert_level == 'Red' %}alert-red{% elif alert.alert_level == 'Yellow' %}alert-yellow{% else %}alert-green{% endif %}">
+                        {{ alert.alert_level }}
+                    </span>
+                </td>
+                <td>{{ alert.created_at|date:"M d, Y H:i" }}</td>
+                <td>
+                    {% if alert.resolved %}
+                    <span style="color: green;">Resolved</span>
+                    {% else %}
+                    <span style="color: red;">Active</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not alert.resolved %}
+                    <button class="btn" style="padding: 5px 10px; font-size: 0.8rem;">Resolve</button>
+                    {% else %}
+                    <span style="color: #888;">-</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 40px; color: #666;">
+        <h3>No Alerts Found</h3>
+        <p>The system hasn't detected any high-risk water samples.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

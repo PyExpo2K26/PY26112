@@ -1,0 +1,101 @@
+{% extends 'monitoring/base.html' %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="card">
+        <h2 style="border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 25px;">Submit Water Sample Data
+        </h2>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- Location Details -->
+                <div style="grid-column: 1 / -1;">
+                    <h4 style="color: var(--gov-light-blue); margin-bottom: 15px;">Location Details</h4>
+                </div>
+
+                <div>
+                    <label>Village Name</label>
+                    {{ form.village }}
+                </div>
+                <div>
+                    <label>District</label>
+                    {{ form.district }}
+                </div>
+                <div>
+                    <label>Latitude</label>
+                    {{ form.latitude }}
+                </div>
+                <div>
+                    <label>Longitude</label>
+                    {{ form.longitude }}
+                </div>
+                <div style="grid-column: 1 / -1;">
+                    <label>Date Collected</label>
+                    {{ form.date_collected }}
+                </div>
+
+                <!-- Water Quality Parameters -->
+                <div style="grid-column: 1 / -1; margin-top: 20px;">
+                    <h4 style="color: var(--gov-light-blue); margin-bottom: 15px;">Quality Parameters</h4>
+                </div>
+
+                <div>
+                    <label>Water Source</label>
+                    {{ form.water_source }}
+                </div>
+                <div>
+                    <label>pH Level (0-14)</label>
+                    {{ form.ph }}
+                </div>
+                <div>
+                    <label>Turbidity (NTU)</label>
+                    {{ form.turbidity }}
+                </div>
+                <div>
+                    <label>Nitrate Level (mg/L)</label>
+                    {{ form.nitrate_level }}
+                </div>
+
+                <div style="grid-column: 1 / -1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        {{ form.ecoli_present }}
+                        <span style="font-weight: 600;">E.coli Bacteria Detected?</span>
+                    </label>
+                    <small style="display: block; margin-top: 5px; color: #666;">Check this box if positive for
+                        E.coli/Coliform bacteria.</small>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; text-align: right;">
+                <a href="{% url 'dashboard' %}" class="btn"
+                    style="background-color: #6c757d; margin-right: 10px;">Cancel</a>
+                <button type="submit" class="btn" style="padding: 12px 30px;">Submit Data</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+    }
+</style>
+{% endblock %}

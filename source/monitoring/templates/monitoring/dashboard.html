@@ -1,0 +1,82 @@
+{% extends 'monitoring/base.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>Dashboard Overview</h2>
+    <div style="display: flex; gap: 20px;">
+        <div style="background: #e9ecef; padding: 20px; border-radius: 8px; flex: 1; text-align: center;">
+            <h3>{{ total_samples }}</h3>
+            <p>Total Samples</p>
+        </div>
+        <div style="background: #ffeeba; padding: 20px; border-radius: 8px; flex: 1; text-align: center;">
+            <h3 style="color: #856404;">{{ high_risk_count }}</h3>
+            <p>High Risk Samples</p>
+        </div>
+        <div style="background: #f8d7da; padding: 20px; border-radius: 8px; flex: 1; text-align: center;">
+            <h3 style="color: #721c24;">{{ active_alerts }}</h3>
+            <p>Active Alerts</p>
+        </div>
+    </div>
+</div>
+
+<div style="display: flex; gap: 20px;">
+    <div style="flex: 2;">
+        <div class="card">
+            <h3>Recent Alerts</h3>
+            {% if alerts %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Village</th>
+                        <th>District</th>
+                        <th>Risk Score</th>
+                        <th>Level</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alert in alerts %}
+                    <tr>
+                        <td>{{ alert.village }}</td>
+                        <td>{{ alert.district }}</td>
+                        <td>{{ alert.risk_score|floatformat:1 }}%</td>
+                        <td>
+                            <span
+                                class="alert-badge {% if alert.alert_level == 'Red' %}alert-red{% elif alert.alert_level == 'Yellow' %}alert-yellow{% else %}alert-green{% endif %}">
+                                {{ alert.alert_level }}
+                            </span>
+                        </td>
+                        <td>{{ alert.created_at|date:"M d, Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div style="text-align: right; margin-top: 10px;">
+                <a href="{% url 'alert_list' %}" class="btn" style="font-size: 0.9rem;">View All Alerts</a>
+            </div>
+            {% else %}
+            <p>No active alerts at the moment.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="flex: 1;">
+        <div class="card">
+            <h3>High Risk Areas</h3>
+            {% if risk_villages %}
+            <ul style="list-style: none; padding: 0;">
+                {% for village in risk_villages %}
+                <li
+                    style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
+                    <span>{{ village.village }}, {{ village.district }}</span>
+                    <strong style="color: var(--alert-red);">{{ village.risk_count }} Cases</strong>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No high risk areas identified.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
