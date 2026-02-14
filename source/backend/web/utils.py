@@ -40,10 +40,17 @@ class ClinicalFeatureTransformer(BaseEstimator, TransformerMixin):
 
 class CustomUnpickler(pickle.Unpickler):
     def find_class(self, module, name):
+        # Map legacy project names to current structure
         if module == 'Health_Monitoring_System.web.models':
             module = 'web.models'
         elif module == 'backend.web.models':
             module = 'web.models'
+        elif module == 'Health_Monitoring_System':
+            # This might happen if the module itself is referenced
+            module = 'aqua_health'
+        elif module.startswith('Health_Monitoring_System.'):
+            module = module.replace('Health_Monitoring_System.', 'aqua_health.')
+            
         elif module == '__main__' and name == 'ClinicalFeatureTransformer':
             return ClinicalFeatureTransformer
             
@@ -73,9 +80,9 @@ def load_artifacts():
 
 def make_prediction(data_dict):
     """
-    Predict waterborne disease based on symptom text and water quality indicators.
+    Predict waterborne disease based purely on water quality indicators.
     
-    data_dict should contain: 'Symptom_Text', 'Water_Color', 'Water_Odor'
+    data_dict should contain: 'Water_Color', 'Water_Odor'
     Optional: 'Age', 'Gender', 'Water_Source', 'Hygiene_Score'
     """
     artifacts = load_artifacts()
@@ -83,8 +90,7 @@ def make_prediction(data_dict):
         return "Model not loaded", "", {}
 
     try:
-        # Extract and prepare input data
-        symptom_text = data_dict.get('Symptom_Text', '')
+        # Extract and prepare input data (Symptom_Text is no longer used for prediction)
         water_color = data_dict.get('Water_Color', 'Clear')
         water_odor = data_dict.get('Water_Odor', 'None')
         age = data_dict.get('Age', 25)
@@ -92,45 +98,36 @@ def make_prediction(data_dict):
         water_source = data_dict.get('Water_Source', 'Tap')
         hygiene_score = data_dict.get('Hygiene_Score', 3)
         
-        # Load encoders
+        # Load encoders/model
         gender_encoder = artifacts.get('gender_encoder')
         water_source_encoder = artifacts.get('water_source_encoder')
         water_color_encoder = artifacts.get('water_color_encoder')
         water_odor_encoder = artifacts.get('water_odor_encoder')
         disease_encoder = artifacts.get('disease_encoder')
-        tfidf = artifacts.get('tfidf')
         model = artifacts.get('model')
         profiles = artifacts.get('profiles')
         
+        # tfidf is intentionally skipped as model is now water-only
+        
         if not all([gender_encoder, water_source_encoder, water_color_encoder, 
-                   water_odor_encoder, disease_encoder, tfidf, model, profiles]):
+                   water_odor_encoder, disease_encoder, model, profiles]):
             return "Model components missing", "", {}
         
         # Encode categorical features
-        try:
-            gender_code = gender_encoder.transform([gender])[0]
-        except:
-            gender_code = 0
+        def safe_encode(encoder, value, default=0):
+            try:
+                return encoder.transform([value])[0]
+            except:
+                return default
+
+        gender_code = safe_encode(gender_encoder, gender)
+        water_source_code = safe_encode(water_source_encoder, water_source)
+        water_color_code = safe_encode(water_color_encoder, water_color)
+        water_odor_code = safe_encode(water_odor_encoder, water_odor)
         
-        try:
-            water_source_code = water_source_encoder.transform([water_source])[0]
-        except:
-            water_source_code = 0
-        
-        try:
-            water_color_code = water_color_encoder.transform([water_color])[0]
-        except:
-            water_color_code = 0
-        
-        try:
-            water_odor_code = water_odor_encoder.transform([water_odor])[0]
-        except:
-            water_odor_code = 0
-        
-        # Process text with TF-IDF
-        X_text = tfidf.transform([symptom_text])
-        
-        # Create clinical features
+        # Create clinical features (Water quality analysis)
+        # Note: Order must match ClinicalFeatureTransformer.transform in train_waterborne_model.py
+        # [Age, Gender, Source, Hygiene, Color, Odor]
         X_clinical = np.array([[
             float(age),
             float(gender_code),
@@ -140,11 +137,8 @@ def make_prediction(data_dict):
             float(water_odor_code)
         ]], dtype=np.float64)
         
-        # Combine all features
-        X_combined = hstack([X_text, X_clinical])
-        
-        # Make prediction
-        disease_encoded = model.predict(X_combined)[0]
+        # Make prediction (Directly using clinical features as the model is no longer combined)
+        disease_encoded = model.predict(X_clinical)[0]
         disease_name = disease_encoder.inverse_transform([disease_encoded])[0]
         
         # Fetch biochemical info from DB if available

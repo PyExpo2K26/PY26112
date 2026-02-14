@@ -29,9 +29,9 @@ def predict_water_quality(request):
     if request.method == 'POST':
         try:
             data = {
-                'Symptom_Text': request.POST.get('Symptom_Text'),
                 'Water_Color': request.POST.get('Water_Color'),
                 'Water_Odor': request.POST.get('Water_Odor'),
+                'Water_Source': request.POST.get('Water_Source', 'Tap'),
             }
             # Import here to avoid circular imports or loading issues at startup if libs missing
             from .utils import make_prediction
@@ -42,7 +42,7 @@ def predict_water_quality(request):
                 from .models import UserPrediction
                 UserPrediction.objects.create(
                     user=request.user,
-                    symptom_text=data['Symptom_Text'],
+                    symptom_text="", # No longer collected
                     water_color=data['Water_Color'],
                     water_odor=data['Water_Odor'],
                     prediction=prediction,
