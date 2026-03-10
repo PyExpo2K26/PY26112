@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaDetect - Health Surveillance</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #map { height: 100%; width: 100%; background: #020617; } /* slate-950 */
+        .leaflet-container { background: #020617 !important; }
+        
+        /* Custom map popup styling */
+        .leaflet-popup-content-wrapper {
+            background: #1e293b; /* slate-800 */
+            color: #f8fafc; /* slate-50 */
+            border-radius: 0.75rem;
+            border: 1px solid #334155; /* slate-700 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+        .leaflet-popup-tip { background: #1e293b; }
+        .custom-popup .title { font-weight: 800; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .custom-popup .row { display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.875rem; }
+    </style>
+</head>
+<body class="h-screen w-full bg-slate-950 text-slate-100 flex flex-col md:flex-row overflow-hidden">
+
+    <!-- Sidebar Panel -->
+    <div class="w-full md:w-96 bg-slate-900 border-r border-slate-800 flex flex-col h-full shadow-2xl z-10 relative">
+        <div class="p-6 pb-2 border-b border-slate-800">
+            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 tracking-tight">
+                AquaDetect
+            </h1>
+            <p class="text-slate-400 text-sm mt-1">Government Water Surveillance</p>
+        </div>
+        
+        <div class="p-6 flex-1 overflow-y-auto space-y-6">
+            
+            <!-- Statistics Card -->
+            <div class="bg-slate-800/40 rounded-xl p-4 border border-slate-700/50">
+                <h3 class="text-xs text-slate-400 uppercase tracking-wider mb-2">Monitored Villages</h3>
+                <div class="text-3xl font-bold text-slate-200" id="villageCount">0</div>
+            </div>
+
+            <!-- Field Agent Form -->
+            <div class="bg-slate-800/50 p-5 rounded-2xl border border-slate-700/50 backdrop-blur-sm relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-3 opacity-20">
+                    <svg class="w-16 h-16 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                </div>
+
+                <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center relative z-10">
+                    <span class="w-2 h-2 rounded-full bg-green-400 mr-2 animate-pulse"></span>
+                    Mobile Data Entry
+                </h2>
+                
+                <form id="offlineForm" class="space-y-4 relative z-10">
+                    <input type="text" id="village_name" placeholder="Village Name" required
+                        class="w-full p-2.5 bg-slate-900 rounded-xl border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none text-sm transition-all" />
+                        
+                    <div class="flex space-x-3">
+                        <input type="number" step="any" id="latitude" placeholder="Lat (e.g. 20.59)" required value="20.5937"
+                            class="w-1/2 p-2.5 bg-slate-900 rounded-xl border border-slate-700 focus:border-cyan-500 outline-none text-sm transition-all" />
+                        <input type="number" step="any" id="longitude" placeholder="Lng (e.g. 78.96)" required value="78.9629"
+                            class="w-1/2 p-2.5 bg-slate-900 rounded-xl border border-slate-700 focus:border-cyan-500 outline-none text-sm transition-all" />
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-slate-400 uppercase ml-1">Diarrhea</label>
+                            <input type="number" id="diarrhea_cases" value="0" min="0" class="w-full p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-sm focus:border-cyan-500 outline-none transition-all" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-slate-400 uppercase ml-1">Vomiting</label>
+                            <input type="number" id="vomiting_cases" value="0" min="0" class="w-full p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-sm focus:border-cyan-500 outline-none transition-all" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-slate-400 uppercase ml-1">Water pH</label>
+                            <input type="number" step="0.1" id="water_ph" value="7.0" class="w-full p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-sm focus:border-cyan-500 outline-none transition-all" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-slate-400 uppercase ml-1">Turbidity</label>
+                            <input type="number" step="0.1" id="water_turbidity" value="1.0" class="w-full p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-sm focus:border-cyan-500 outline-none transition-all" />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full mt-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-3 rounded-xl transition-all border border-slate-600 flex justify-center items-center gap-2">
+                        <span>Save Locally</span>
+                        <span id="queueBadge" class="bg-cyan-500 text-white text-xs py-0.5 px-2 rounded-full hidden">0</span>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Toast Notification -->
+            <div id="toast" class="hidden transition-opacity duration-300 opacity-0 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-3 rounded-xl text-sm text-center">
+                Action successful!
+            </div>
+        </div>
+
+        <!-- Sync Button -->
+        <div class="p-6 border-t border-slate-800 bg-slate-900">
+            <button id="syncBtn" class="w-full relative group overflow-hidden bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-4 rounded-2xl shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]">
+                <span class="relative z-10 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    SYNC TO CLOUD
+                </span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Map Area -->
+    <div class="flex-1 relative bg-slate-950 z-0">
+        <div id="map"></div>
+        <!-- Legend overlays or top bars can go here -->
+    </div>
+
+    <script>
+        // Init Map
+        const map = L.map('map', { zoomControl: false }).setView([20.5937, 78.9629], 5);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CARTO'
+        }).addTo(map);
+
+        L.control.zoom({ position: 'topright' }).addTo(map);
+
+        let mapMarkers = [];
+        let offlineQueue = [];
+
+        // Colors
+        const getRiskColor = (risk) => {
+            if (risk === 2) return '#ef4444'; // Red
+            if (risk === 1) return '#eab308'; // Yellow
+            return '#22c55e'; // Green
+        };
+        const getRiskText = (risk) => risk === 2 ? 'HIGH' : risk === 1 ? 'MODERATE' : 'LOW';
+
+        // Load Dashboard Data
+        async function fetchDashboard() {
+            try {
+                const res = await fetch('/api/dashboard/');
+                const data = await res.json();
+                
+                document.getElementById('villageCount').innerText = data.length;
+
+                // Clear existing markers
+                mapMarkers.forEach(m => map.removeLayer(m));
+                mapMarkers = [];
+
+                data.forEach(v => {
+                    const color = getRiskColor(v.latest_risk);
+                    const radius = 6 + (v.diarrhea_cases * 0.2);
+                    
+                    const marker = L.circleMarker([v.lat, v.lng], {
+                        color: color,
+                        fillColor: color,
+                        fillOpacity: 0.6,
+                        weight: 2,
+                        radius: radius
+                    }).addTo(map);
+
+                    const popupContent = `
+                        <div class="custom-popup">
+                            <div class="title">${v.name}</div>
+                            <div class="row">
+                                <span class="text-slate-400">Risk Profile</span>
+                                <span style="background:${color}; color:#fff; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:10px;">${getRiskText(v.latest_risk)}</span>
+                            </div>
+                            <div class="row"><span class="text-slate-400">Diarrhea:</span> <strong class="text-white">${v.diarrhea_cases}</strong></div>
+                            <div class="row"><span class="text-slate-400">Vomiting:</span> <strong class="text-white">${v.vomiting_cases}</strong></div>
+                            <div class="row"><span class="text-slate-400">Water pH:</span> <strong class="text-white">${v.water_ph}</strong></div>
+                            <div style="font-size:10px; color:#64748b; margin-top:8px; text-align:right;">Updated: ${v.last_updated}</div>
+                        </div>
+                    `;
+                    marker.bindPopup(popupContent);
+                    mapMarkers.push(marker);
+                });
+            } catch (err) {
+                console.error("Dashboard error:", err);
+            }
+        }
+
+        fetchDashboard();
+
+        // UI Helpers
+        function showToast(msg, isError=false) {
+            const t = document.getElementById('toast');
+            t.className = `transition-opacity duration-300 opacity-100 px-4 py-3 rounded-xl text-sm text-center mb-4 ${isError ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`;
+            t.innerText = msg;
+            t.classList.remove('hidden');
+            setTimeout(() => {
+                t.classList.add('opacity-0');
+                setTimeout(() => t.classList.add('hidden'), 300);
+            }, 3000);
+        }
+
+        function updateBadge() {
+            const b = document.getElementById('queueBadge');
+            if(offlineQueue.length > 0) {
+                b.innerText = offlineQueue.length;
+                b.classList.remove('hidden');
+            } else {
+                b.classList.add('hidden');
+            }
+        }
+
+        // Form Submit -> Queue
+        document.getElementById('offlineForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const data = {
+                village_name: document.getElementById('village_name').value,
+                latitude: parseFloat(document.getElementById('latitude').value),
+                longitude: parseFloat(document.getElementById('longitude').value),
+                diarrhea_cases: parseInt(document.getElementById('diarrhea_cases').value || 0),
+                vomiting_cases: parseInt(document.getElementById('vomiting_cases').value || 0),
+                water_ph: parseFloat(document.getElementById('water_ph').value || 7.0),
+                water_turbidity: parseFloat(document.getElementById('water_turbidity').value || 1.0)
+            };
+            offlineQueue.push(data);
+            showToast("Saved locally. Ready to sync.");
+            updateBadge();
+            document.getElementById('offlineForm').reset();
+            // keep standard defaults
+            document.getElementById('latitude').value = "20.5937";
+            document.getElementById('longitude').value = "78.9629";
+            document.getElementById('diarrhea_cases').value = "0";
+            document.getElementById('vomiting_cases').value = "0";
+            document.getElementById('water_ph').value = "7.0";
+            document.getElementById('water_turbidity').value = "1.0";
+        });
+
+        // Sync to Cloud
+        document.getElementById('syncBtn').addEventListener('click', async () => {
+            if(offlineQueue.length === 0) return showToast("Queue is empty nothing to sync", true);
+            
+            const btn = document.getElementById('syncBtn');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<span class="relative z-10 flex items-center justify-center gap-2"><svg class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> SYNCING...</span>`;
+            
+            try {
+                const res = await fetch('/api/sync/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(offlineQueue)
+                });
+                const responseData = await res.json();
+                
+                if(responseData.status === 'success') {
+                    offlineQueue = [];
+                    updateBadge();
+                    fetchDashboard();
+                    showToast(`Synced ${responseData.synced_records} records & ML predictions complete!`);
+                } else {
+                    showToast(responseData.message || "Failed to sync", true);
+                }
+            } catch (err) {
+                showToast("Server unreachable", true);
+            } finally {
+                btn.innerHTML = originalHTML;
+            }
+        });
+    </script>
+</body>
+</html>
