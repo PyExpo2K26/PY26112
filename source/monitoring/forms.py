@@ -6,7 +6,8 @@ class WaterSampleForm(forms.ModelForm):
         model = WaterSample
         fields = [
             'village', 'district', 'latitude', 'longitude', 'date_collected',
-            'water_source', 'turbidity', 'ph', 'nitrate_level', 'ecoli_present'
+            'water_source', 'turbidity', 'ph', 'nitrate_level', 'ecoli_present',
+            'phone_number'
         ]
         widgets = {
             'date_collected': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -18,5 +19,6 @@ class WaterSampleForm(forms.ModelForm):
             'turbidity': forms.NumberInput(attrs={'class': 'form-control'}),
             'ph': forms.NumberInput(attrs={'class': 'form-control'}),
             'nitrate_level': forms.NumberInput(attrs={'class': 'form-control'}),
-            'ecoli_present': forms.CheckboxInput(attrs={'class': 'form-check-input'})
+            'ecoli_present': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., +91 9876543210'})
         }

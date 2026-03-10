@@ -7,4 +7,5 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('submit/', views.submit_sample, name='submit_sample'),
     path('alerts/', views.alert_list, name='alert_list'),
+    path('send-sms/<int:sample_id>/', views.send_sms, name='send_sms'),
 ]

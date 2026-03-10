@@ -28,7 +28,7 @@ def save_user_profile(sender, instance, **kwargs):
     instance.userprofile.save()
 
 class WaterSample(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     village = models.CharField(max_length=100)
     district = models.CharField(max_length=100)
     latitude = models.FloatField()
@@ -48,9 +48,15 @@ class WaterSample(models.Model):
         ('Other', 'Other')
     ])
     
+    # Submitter Contact
+    phone_number = models.CharField(max_length=20, blank=True, null=True, help_text="WhatsApp Number for Alerts")
+
     # Calculated Fields
     contamination_index = models.FloatField(blank=True, null=True)
     risk_score = models.FloatField(blank=True, null=True)
+    cause = models.TextField(blank=True, null=True)
+    effect = models.TextField(blank=True, null=True)
+    remedy = models.TextField(blank=True, null=True)
     
     def save(self, *args, **kwargs):
         engine = RiskEngine()
@@ -62,6 +68,12 @@ class WaterSample(models.Model):
         )
         self.contamination_index = ci
         self.risk_score = prediction[1] # Probability from ML model
+        
+        # Generate Insights
+        self.cause, self.effect, self.remedy = engine.generate_insights(
+            self.turbidity, self.ph, self.ecoli_present, self.nitrate_level
+        )
+
         super().save(*args, **kwargs)
         
         # Trigger Alert if High Risk

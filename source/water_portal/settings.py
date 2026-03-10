@@ -129,3 +129,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
+
+# Twilio Settings
+TWILIO_ACCOUNT_SID = 'AC_YOUR_TWILIO_SID' # Replace with actual SID
+TWILIO_AUTH_TOKEN = 'YOUR_TWILIO_AUTH_TOKEN' # Replace with actual Token
+TWILIO_PHONE_NUMBER = '+1234567890' # Replace with actual Twilio number

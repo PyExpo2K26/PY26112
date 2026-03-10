@@ -1,0 +1,82 @@
+{% extends 'monitoring/base.html' %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto; padding: 30px;">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="color: var(--gov-blue);">Sample Analysis Complete</h2>
+        <p>Location: <strong>{{ sample.village }}, {{ sample.district }}</strong></p>
+    </div>
+
+    <div style="display: flex; gap: 20px; align-items: stretch;">
+        <div style="flex: 1; text-align: center; background: {% if sample.risk_score > 70 %}#f8d7da{% elif sample.risk_score >= 30 %}#ffeeba{% else %}#d4edda{% endif %}; padding: 30px; border-radius: 8px;">
+            <h3>Risk Assessment</h3>
+            <div style="font-size: 3rem; font-weight: bold; color: {% if sample.risk_score > 70 %}#721c24{% elif sample.risk_score >= 30 %}#856404{% else %}#155724{% endif %};">
+                {{ sample.risk_score|floatformat:1 }}%
+            </div>
+            <p style="font-size: 1.2rem; margin-top: 10px; font-weight: 600;">
+                {% if sample.risk_score > 70 %}HIGH RISK{% elif sample.risk_score >= 30 %}MODERATE RISK{% else %}SAFE{% endif %}
+            </p>
+        </div>
+        
+        <div style="flex: 2; display: flex; flex-direction: column; gap: 15px;">
+            <div style="background: #e9ecef; padding: 15px; border-radius: 8px;">
+                <h4 style="margin: 0 0 5px 0; color: var(--gov-blue);">🔬 Likely Cause</h4>
+                <p style="margin: 0; font-size: 0.95rem;">{{ sample.cause }}</p>
+            </div>
+            
+            <div style="background: #fff3cd; padding: 15px; border-radius: 8px;">
+                <h4 style="margin: 0 0 5px 0; color: #856404;">⚠️ Potential Effects</h4>
+                <p style="margin: 0; font-size: 0.95rem;">{{ sample.effect }}</p>
+            </div>
+            
+            <div style="background: #d1ecf1; padding: 15px; border-radius: 8px;">
+                <h4 style="margin: 0 0 5px 0; color: #0c5460;">🛡️ Immediate Remedy</h4>
+                <p style="margin: 0; font-size: 0.95rem;">{{ sample.remedy }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 30px; text-align: center; border-top: 1px solid #ddd; padding-top: 20px;">
+        {% if sample.phone_number and sample.risk_score > 30 %}
+        <a href="https://wa.me/{{ sample.phone_number|urlencode }}?text=Water Alert for {{ sample.village }}: Risk Score is {{ sample.risk_score|floatformat:1 }}%25. Cause: {{ sample.cause }} Remedy: {{ sample.remedy }}" target="_blank" class="btn" style="background-color: #25D366; font-weight: 600; margin-right: 10px;">
+            📢 Notify Community via WhatsApp
+        </a>
+        <button onclick="sendSmsAlert({{ sample.id }})" id="sms-btn-{{ sample.id }}" class="btn" style="background-color: #007bff; font-weight: 600; margin-right: 10px; border: none; cursor: pointer;">
+            📱 Send SMS Alert
+        </button>
+        {% endif %}
+        <a href="{% url 'dashboard' %}" class="btn" style="background-color: #6c757d;">Return to Dashboard</a>
+    </div>
+</div>
+
+<script>
+function sendSmsAlert(sampleId) {
+    const btn = document.getElementById('sms-btn-' + sampleId);
+    btn.disabled = true;
+    btn.innerText = "Sending...";
+    
+    fetch(`/send-sms/${sampleId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            btn.innerText = "✅ SMS Sent";
+            btn.style.backgroundColor = "#28a745";
+        } else {
+            alert("Error: " + data.error);
+            btn.innerText = "📱 Send SMS Alert";
+            btn.disabled = false;
+        }
+    })
+    .catch(error => {
+        alert("Failed to send request.");
+        btn.innerText = "📱 Send SMS Alert";
+        btn.disabled = false;
+    });
+}
+</script>
+{% endblock %}

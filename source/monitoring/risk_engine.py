@@ -59,6 +59,43 @@ class RiskEngine:
         risk_prob = self.model.predict_proba(features)[0][1] * 100
         return ci, round(risk_prob, 2)
 
+    def generate_insights(self, turbidity, ph, ecoli_present, nitrate):
+        """Generates cause, effect, and remedy based on water parameters."""
+        causes = []
+        effects = []
+        remedies = []
+
+        if ecoli_present:
+            causes.append("Fecal contamination from sewage or animal waste.")
+            effects.append("High risk of waterborne diseases like Cholera, Typhoid, or Dysentery.")
+            remedies.append("Immediate boiling of water. Chlorination of the water source.")
+
+        if turbidity > 5:
+            causes.append("High suspended solids from soil erosion or runoff.")
+            effects.append("Can shelter pathogens. Aesthetically unpleasing.")
+            remedies.append("Filtration using sand or activated carbon filters.")
+
+        if ph < 6.5:
+            causes.append("Acidic water from industrial runoff or mineral deposits.")
+            effects.append("Corrosion of pipes leading to heavy metal leaching.")
+            remedies.append("Use neutralizing filters or add soda ash.")
+        elif ph > 8.5:
+            causes.append("Alkaline water from limestone bedrock.")
+            effects.append("Decreased efficiency of chlorination.")
+            remedies.append("Reverse osmosis or add a weak acid.")
+
+        if nitrate > 45:
+            causes.append("Agricultural runoff from fertilizers.")
+            effects.append("Blue baby syndrome in infants.")
+            remedies.append("Reverse osmosis or ion exchange. Boiling DOES NOT remove nitrates.")
+
+        if not causes:
+            causes.append("Parameters are within safe limits.")
+            effects.append("Safe for general use.")
+            remedies.append("Routine monitoring and source hygiene.")
+
+        return " ".join(causes), " ".join(effects), " ".join(remedies)
+
     def determine_alert_level(self, risk_score):
         """Determines alert level based on risk score."""
         if risk_score > 70:
