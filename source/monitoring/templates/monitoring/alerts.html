@@ -1,55 +1,59 @@
 {% extends 'monitoring/base.html' %}
+{% block na %}active{% endblock %}
+{% block tb %}AquaHealth / <span>System Alerts</span>{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2>System Alerts</h2>
-        <div>
-            <span class="alert-badge alert-red" style="margin-right: 10px;">High Risk</span>
-            <span class="alert-badge alert-yellow">Moderate Risk</span>
-        </div>
+<div class="pg-hd" style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+        <h1>System Alerts</h1>
+        <p>All alerts generated from water quality analysis</p>
     </div>
+    <div style="display:flex; gap:8px;">
+        <span class="badge b-red">High Risk</span>
+        <span class="badge b-yellow">Moderate</span>
+        <span class="badge b-green">Safe</span>
+    </div>
+</div>
 
+<div class="card">
     {% if alerts %}
-    <table>
+    <table class="tbl">
         <thead>
             <tr>
-                <th>Alert ID</th>
-                <th>Village</th>
-                <th>District</th>
-                <th>Risk Score</th>
-                <th>Alert Level</th>
-                <th>Date Generated</th>
-                <th>Status</th>
-                <th>Action</th>
+                <th>ID</th><th>Village</th><th>District</th>
+                <th>Risk Score</th><th>Level</th><th>Date</th>
+                <th>Status</th><th>Action</th>
             </tr>
         </thead>
         <tbody>
             {% for alert in alerts %}
             <tr>
-                <td>#{{ alert.id }}</td>
-                <td>{{ alert.village }}</td>
+                <td style="font-family:monospace; color:#9ca3af; font-size:.8rem;">#{{ alert.id }}</td>
+                <td style="font-weight:600; color:#111827;">{{ alert.village }}</td>
                 <td>{{ alert.district }}</td>
-                <td><strong>{{ alert.risk_score|floatformat:1 }}%</strong></td>
                 <td>
-                    <span
-                        class="alert-badge {% if alert.alert_level == 'Red' %}alert-red{% elif alert.alert_level == 'Yellow' %}alert-yellow{% else %}alert-green{% endif %}">
+                    <span style="font-weight:700; font-size:.95rem; color:{% if alert.risk_score > 70 %}#dc2626{% elif alert.risk_score >= 30 %}#d97706{% else %}#0d9488{% endif %};">
+                        {{ alert.risk_score|floatformat:1 }}%
+                    </span>
+                </td>
+                <td>
+                    <span class="badge {% if alert.alert_level == 'Red' %}b-red{% elif alert.alert_level == 'Yellow' %}b-yellow{% else %}b-green{% endif %}">
                         {{ alert.alert_level }}
                     </span>
                 </td>
-                <td>{{ alert.created_at|date:"M d, Y H:i" }}</td>
+                <td style="color:#9ca3af; font-size:.8rem;">{{ alert.created_at|date:"M d, Y H:i" }}</td>
                 <td>
                     {% if alert.resolved %}
-                    <span style="color: green;">Resolved</span>
+                    <span class="badge b-green">Resolved</span>
                     {% else %}
-                    <span style="color: red;">Active</span>
+                    <span class="badge b-red">Active</span>
                     {% endif %}
                 </td>
                 <td>
                     {% if not alert.resolved %}
-                    <button class="btn" style="padding: 5px 10px; font-size: 0.8rem;">Resolve</button>
+                    <button class="btn btn-light" style="padding:5px 12px; font-size:.76rem;">✅ Resolve</button>
                     {% else %}
-                    <span style="color: #888;">-</span>
+                    <span style="color:#d1d5db;">—</span>
                     {% endif %}
                 </td>
             </tr>
@@ -57,9 +61,11 @@
         </tbody>
     </table>
     {% else %}
-    <div style="text-align: center; padding: 40px; color: #666;">
+    <div class="empty">
+        <div class="ei">🌊</div>
         <h3>No Alerts Found</h3>
-        <p>The system hasn't detected any high-risk water samples.</p>
+        <p>Submit a water sample to begin risk monitoring.</p>
+        <a href="{% url 'submit_sample' %}" class="btn btn-blue" style="margin-top:16px;">🧪 Submit Sample</a>
     </div>
     {% endif %}
 </div>
