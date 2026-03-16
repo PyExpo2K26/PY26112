@@ -32,10 +32,14 @@
                 <td>{{ alert.district }}</td>
                 <td><strong>{{ alert.risk_score|floatformat:1 }}%</strong></td>
                 <td>
+                    {% if alert.resolved %}
+                    <span class="alert-badge alert-green">Safe</span>
+                    {% else %}
                     <span
                         class="alert-badge {% if alert.alert_level == 'Red' %}alert-red{% elif alert.alert_level == 'Yellow' %}alert-yellow{% else %}alert-green{% endif %}">
                         {{ alert.alert_level }}
                     </span>
+                    {% endif %}
                 </td>
                 <td>{{ alert.created_at|date:"M d, Y H:i" }}</td>
                 <td>
@@ -47,9 +51,12 @@
                 </td>
                 <td>
                     {% if not alert.resolved %}
-                    <button class="btn" style="padding: 5px 10px; font-size: 0.8rem;">Resolve</button>
+                    <form method="POST" action="{% url 'resolve_alert' alert.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn" style="padding: 5px 10px; font-size: 0.8rem;">Resolve</button>
+                    </form>
                     {% else %}
-                    <span style="color: #888;">-</span>
+                    <span style="color: green; font-weight: bold;">Water is safe</span>
                     {% endif %}
                 </td>
             </tr>

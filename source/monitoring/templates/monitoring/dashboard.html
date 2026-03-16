@@ -1,110 +1,193 @@
 {% extends 'monitoring/base.html' %}
 
 {% block content %}
-<div class="card">
-    <h2>Dashboard Overview</h2>
-    <div style="display: flex; gap: 20px;">
-        <div style="background: #e9ecef; padding: 20px; border-radius: 8px; flex: 1; text-align: center;">
-            <h3>{{ total_samples }}</h3>
-            <p>Total Samples</p>
+<!-- Row 1: KPI Summary Cards -->
+<div class="card" style="margin-bottom: 0; background: transparent; box-shadow: none; padding: 0;">
+    <h2 style="margin-bottom: 15px; color: var(--gov-blue);">
+        <span style="margin-right: 8px;">📊</span>Waterborne Disease Surveillance Dashboard
+    </h2>
+    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px;">
+        <!-- Total Samples -->
+        <div style="background: linear-gradient(135deg, #e8f4fd, #d1ecf1); padding: 18px 12px; border-radius: 10px; text-align: center; border-left: 4px solid #17a2b8;">
+            <div style="font-size: 2rem; font-weight: 700; color: #0c5460;">{{ total_samples }}</div>
+            <div style="font-size: 0.75rem; color: #0c5460; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Samples</div>
         </div>
-        <div style="background: #ffeeba; padding: 20px; border-radius: 8px; flex: 1; text-align: center;">
-            <h3 style="color: #856404;">{{ high_risk_count }}</h3>
-            <p>High Risk Samples</p>
+        <!-- High Risk -->
+        <div style="background: linear-gradient(135deg, #fde8e8, #f8d7da); padding: 18px 12px; border-radius: 10px; text-align: center; border-left: 4px solid #dc3545;">
+            <div style="font-size: 2rem; font-weight: 700; color: #721c24;">{{ high_risk_count }}</div>
+            <div style="font-size: 0.75rem; color: #721c24; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">High Risk Cases</div>
         </div>
-        <div style="background: #f8d7da; padding: 20px; border-radius: 8px; flex: 1; text-align: center;">
-            <h3 style="color: #721c24;">{{ active_alerts }}</h3>
-            <p>Active Alerts</p>
+        <!-- Active Alerts -->
+        <div style="background: linear-gradient(135deg, #fff8e1, #ffeeba); padding: 18px 12px; border-radius: 10px; text-align: center; border-left: 4px solid #ffc107;">
+            <div style="font-size: 2rem; font-weight: 700; color: #856404;">{{ active_alerts }}</div>
+            <div style="font-size: 0.75rem; color: #856404; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Active Alerts</div>
+        </div>
+        <!-- E.coli Rate -->
+        <div style="background: linear-gradient(135deg, #fce4ec, #f8d7da); padding: 18px 12px; border-radius: 10px; text-align: center; border-left: 4px solid #e91e63;">
+            <div style="font-size: 2rem; font-weight: 700; color: #880e4f;">{{ ecoli_rate }}%</div>
+            <div style="font-size: 0.75rem; color: #880e4f; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">E.coli Detection</div>
+        </div>
+        <!-- Resolved -->
+        <div style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9); padding: 18px 12px; border-radius: 10px; text-align: center; border-left: 4px solid #28a745;">
+            <div style="font-size: 2rem; font-weight: 700; color: #1b5e20;">{{ resolved_alerts }}</div>
+            <div style="font-size: 0.75rem; color: #1b5e20; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Resolved Cases</div>
+        </div>
+        <!-- Safe Water % -->
+        <div style="background: linear-gradient(135deg, #e0f2f1, #b2dfdb); padding: 18px 12px; border-radius: 10px; text-align: center; border-left: 4px solid #00897b;">
+            <div style="font-size: 2rem; font-weight: 700; color: #004d40;">{{ safe_pct }}%</div>
+            <div style="font-size: 0.75rem; color: #004d40; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Safe Water</div>
         </div>
     </div>
 </div>
 
-<div style="display: flex; gap: 20px; margin-top: 20px;">
-    <div class="card" style="flex: 1; min-height: 400px; display: flex; flex-direction: column; align-items: center;">
-        <h3>Risk Factor Radar (Spider Chart)</h3>
+<!-- Row 2: Trend Charts -->
+<div style="display: grid; grid-template-columns: 3fr 2fr; gap: 20px; margin-top: 20px;">
+    <!-- Monthly Trend Line Chart -->
+    <div class="card" style="min-height: 380px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin: 0; font-size: 1rem; color: var(--gov-blue);">📈 New Cases Month Over Month</h3>
+        </div>
+        <canvas id="monthlyTrendChart"></canvas>
+    </div>
+    <!-- Cases by Water Source -->
+    <div class="card" style="min-height: 380px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin: 0; font-size: 1rem; color: var(--gov-blue);">💧 Cases by Water Source</h3>
+        </div>
+        <canvas id="sourceBarChart"></canvas>
+    </div>
+</div>
+
+<!-- Row 3: Distribution Charts -->
+<div style="display: grid; grid-template-columns: 3fr 2fr; gap: 20px; margin-top: 20px;">
+    <!-- Cases by District -->
+    <div class="card" style="min-height: 380px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin: 0; font-size: 1rem; color: var(--gov-blue);">🏘️ Cases by District</h3>
+        </div>
+        <canvas id="districtBarChart"></canvas>
+    </div>
+    <!-- Risk Level Distribution -->
+    <div class="card" style="min-height: 380px; display: flex; flex-direction: column; align-items: center;">
+        <h3 style="margin: 0 0 10px 0; font-size: 1rem; color: var(--gov-blue); align-self: flex-start;">⚠️ Risk Level Distribution</h3>
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; max-width: 300px;">
+            <canvas id="riskPieChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Row 4: Data Tables -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-top: 20px;">
+    <!-- Recent Alerts Table -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin: 0; font-size: 1rem; color: var(--gov-blue);">🚨 Recent Alerts</h3>
+            <a href="{% url 'alert_list' %}" class="btn" style="font-size: 0.75rem; padding: 6px 14px;">View All</a>
+        </div>
+        {% if alerts %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Village</th>
+                    <th>District</th>
+                    <th>Risk Score</th>
+                    <th>Level</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alert in alerts %}
+                <tr>
+                    <td>{{ alert.village }}</td>
+                    <td>{{ alert.district }}</td>
+                    <td><strong>{{ alert.risk_score|floatformat:1 }}%</strong></td>
+                    <td>
+                        <span class="alert-badge {% if alert.alert_level == 'Red' %}alert-red{% elif alert.alert_level == 'Yellow' %}alert-yellow{% else %}alert-green{% endif %}">
+                            {{ alert.alert_level }}
+                        </span>
+                    </td>
+                    <td>{{ alert.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        {% if alert.sample.phone_number %}
+                        <div style="display: flex; gap: 5px;">
+                            <a href="https://wa.me/{{ alert.sample.phone_number|urlencode }}?text=Water Alert for {{ alert.village }}: Risk {{ alert.risk_score|floatformat:1 }}%25. Cause: {{ alert.sample.cause }}. Remedy: {{ alert.sample.remedy }}" target="_blank" class="btn" style="background-color: #25D366; padding: 4px 8px; font-size: 0.7rem;">
+                                WhatsApp
+                            </a>
+                            <button onclick="sendSmsAlert({{ alert.sample.id }})" id="sms-btn-{{ alert.sample.id }}" class="btn" style="background-color: #007bff; padding: 4px 8px; font-size: 0.7rem; border: none; cursor: pointer;">
+                                SMS
+                            </button>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: #888; text-align: center; padding: 30px 0;">No active alerts at the moment.</p>
+        {% endif %}
+    </div>
+
+    <!-- High Risk Areas -->
+    <div class="card">
+        <h3 style="margin: 0 0 15px 0; font-size: 1rem; color: var(--gov-blue);">🔴 High Risk Areas</h3>
+        {% if risk_villages %}
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            {% for village in risk_villages %}
+            <li style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee;">
+                <div>
+                    <strong>{{ village.village }}</strong>
+                    <div style="font-size: 0.8rem; color: #888;">{{ village.district }}</div>
+                </div>
+                <span style="background: #f8d7da; color: #721c24; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 0.8rem;">
+                    {{ village.risk_count }} Cases
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p style="color: #888; text-align: center; padding: 30px 0;">No high risk areas identified.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Row 5: Radar + Recent Activity -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+    <!-- Radar Chart -->
+    <div class="card" style="min-height: 350px; display: flex; flex-direction: column; align-items: center;">
+        <h3 style="margin: 0 0 10px 0; font-size: 1rem; color: var(--gov-blue); align-self: flex-start;">🕸️ Risk Factor Radar</h3>
         <canvas id="riskRadarChart"></canvas>
     </div>
-    <div class="card" style="flex: 1; min-height: 400px; display: flex; flex-direction: column; align-items: center;">
-        <h3>Alert Distribution</h3>
-        <canvas id="samplesPieChart"></canvas>
+    <!-- Recent Activity Feed -->
+    <div class="card">
+        <h3 style="margin: 0 0 15px 0; font-size: 1rem; color: var(--gov-blue);">📋 Recent Sample Submissions</h3>
+        {% if recent_samples %}
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            {% for sample in recent_samples %}
+            <li style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+                <div>
+                    <strong>{{ sample.village }}</strong>, {{ sample.district }}
+                    <div style="font-size: 0.75rem; color: #999;">{{ sample.date_collected|date:"M d, Y" }} · {{ sample.water_source }}</div>
+                </div>
+                <span style="padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 0.75rem;
+                    {% if sample.risk_score > 70 %}background: #f8d7da; color: #721c24;
+                    {% elif sample.risk_score >= 30 %}background: #ffeeba; color: #856404;
+                    {% else %}background: #d4edda; color: #155724;{% endif %}">
+                    {{ sample.risk_score|floatformat:1 }}%
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p style="color: #888; text-align: center; padding: 30px 0;">No samples submitted yet.</p>
+        {% endif %}
     </div>
 </div>
 
-<div style="display: flex; gap: 20px;">
-    <div style="flex: 2;">
-        <div class="card">
-            <h3>Recent Alerts</h3>
-            {% if alerts %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>Village</th>
-                        <th>District</th>
-                        <th>Risk Score</th>
-                        <th>Level</th>
-                        <th>Date</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for alert in alerts %}
-                    <tr>
-                        <td>{{ alert.village }}</td>
-                        <td>{{ alert.district }}</td>
-                        <td>{{ alert.risk_score|floatformat:1 }}%</td>
-                        <td>
-                            <span
-                                class="alert-badge {% if alert.alert_level == 'Red' %}alert-red{% elif alert.alert_level == 'Yellow' %}alert-yellow{% else %}alert-green{% endif %}">
-                                {{ alert.alert_level }}
-                            </span>
-                        </td>
-                        <td>{{ alert.created_at|date:"M d, Y" }}</td>
-                            {% if alert.sample.phone_number %}
-                            <div style="display: flex; gap: 5px;">
-                                <a href="https://wa.me/{{ alert.sample.phone_number|urlencode }}?text=Water Alert for {{ alert.village }}. Cause: {{ alert.sample.cause }}. Immediate Remedy: {{ alert.sample.remedy }}" target="_blank" class="btn" style="background-color: #25D366; padding: 6px 10px; font-size: 0.8rem;">
-                                    WhatsApp
-                                </a>
-                                <button onclick="sendSmsAlert({{ alert.sample.id }})" id="sms-btn-{{ alert.sample.id }}" class="btn" style="background-color: #007bff; padding: 6px 10px; font-size: 0.8rem; border: none; cursor: pointer;">
-                                    SMS
-                                </button>
-                            </div>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <div style="text-align: right; margin-top: 10px;">
-                <a href="{% url 'alert_list' %}" class="btn" style="font-size: 0.9rem;">View All Alerts</a>
-            </div>
-            {% else %}
-            <p>No active alerts at the moment.</p>
-            {% endif %}
-        </div>
-    </div>
-
-    <div style="flex: 1;">
-        <div class="card">
-            <h3>High Risk Areas</h3>
-            {% if risk_villages %}
-            <ul style="list-style: none; padding: 0;">
-                {% for village in risk_villages %}
-                <li
-                    style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
-                    <span>{{ village.village }}, {{ village.district }}</span>
-                    <strong style="color: var(--alert-red);">{{ village.risk_count }} Cases</strong>
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p>No high risk areas identified.</p>
-            {% endif %}
-        </div>
-    </div>
-</div>
-</div>
-
+<!-- === CHART SCRIPTS === -->
 <script>
+// SMS Alert Function
 function sendSmsAlert(sampleId) {
     const btn = document.getElementById('sms-btn-' + sampleId);
     const originalText = btn.innerText;
@@ -120,7 +203,7 @@ function sendSmsAlert(sampleId) {
     .then(response => response.json())
     .then(data => {
         if(data.success) {
-            btn.innerText = "Sent";
+            btn.innerText = "Sent ✅";
             btn.style.backgroundColor = "#28a745";
         } else {
             alert("Error: " + data.error);
@@ -134,69 +217,177 @@ function sendSmsAlert(sampleId) {
         btn.disabled = false;
     });
 }
-</script>
 
-<script>
-// Radar Chart for Risk Factors
-const radarCtx = document.getElementById('riskRadarChart').getContext('2d');
-new Chart(radarCtx, {
-    type: 'radar',
+// --- Chart Color Palette ---
+const palette = {
+    blue: 'rgba(0, 51, 102, 0.8)',
+    blueFill: 'rgba(0, 51, 102, 0.15)',
+    red: 'rgba(220, 53, 69, 0.8)',
+    redFill: 'rgba(220, 53, 69, 0.15)',
+    green: 'rgba(40, 167, 69, 0.8)',
+    yellow: 'rgba(255, 193, 7, 0.8)',
+    teal: 'rgba(0, 137, 123, 0.8)',
+    pink: 'rgba(233, 30, 99, 0.8)',
+    orange: 'rgba(255, 152, 0, 0.8)',
+    purple: 'rgba(156, 39, 176, 0.8)',
+};
+
+// --- 1. Monthly Trend Line Chart ---
+const monthLabels = {{ month_labels|safe }};
+const monthTotals = {{ month_totals|safe }};
+const monthHighRisk = {{ month_high_risk|safe }};
+
+new Chart(document.getElementById('monthlyTrendChart').getContext('2d'), {
+    type: 'line',
     data: {
-        labels: ['Turbidity', 'pH Balance', 'E.coli Rate', 'Nitrate Level', 'Overall Risk'],
+        labels: monthLabels,
         datasets: [{
-            label: 'Current Water Metrics',
-            data: [
-                {{ radar_data.avg_turbidity }} * 10,  // Scaled for visibility
-                Math.abs(7.5 - {{ radar_data.avg_ph }}) * 20, // Deviation from ideal pH
-                {{ radar_data.ecoli_rate }},
-                ({{ radar_data.avg_nitrate }} / 45) * 100, // Relative to safe limit
-                {{ radar_data.avg_risk }}
-            ],
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            borderColor: 'rgb(54, 162, 235)',
-            pointBackgroundColor: 'rgb(54, 162, 235)',
-            pointBorderColor: '#fff',
-            pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: 'rgb(54, 162, 235)'
+            label: 'Total Samples',
+            data: monthTotals,
+            borderColor: palette.blue,
+            backgroundColor: palette.blueFill,
+            tension: 0.3,
+            fill: true,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+        }, {
+            label: 'High Risk Cases',
+            data: monthHighRisk,
+            borderColor: palette.red,
+            backgroundColor: palette.redFill,
+            tension: 0.3,
+            fill: true,
+            pointRadius: 4,
+            pointHoverRadius: 6,
         }]
     },
     options: {
-        elements: {
-            line: { borderWidth: 3 }
+        responsive: true,
+        plugins: {
+            legend: { position: 'top' }
         },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+        }
+    }
+});
+
+// --- 2. Cases by Water Source (Horizontal Bar) ---
+const sourceLabels = {{ source_labels|safe }};
+const sourceCounts = {{ source_counts|safe }};
+const sourceColors = [palette.blue, palette.teal, palette.green, palette.orange, palette.purple, palette.pink];
+
+new Chart(document.getElementById('sourceBarChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+        labels: sourceLabels,
+        datasets: [{
+            label: 'Number of Samples',
+            data: sourceCounts,
+            backgroundColor: sourceColors.slice(0, sourceLabels.length),
+            borderRadius: 6,
+            barThickness: 28,
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            x: { beginAtZero: true, ticks: { stepSize: 1 } }
+        }
+    }
+});
+
+// --- 3. Cases by District (Grouped Bar) ---
+const districtLabels = {{ district_labels|safe }};
+const districtTotals = {{ district_totals|safe }};
+const districtHighRisk = {{ district_high_risk|safe }};
+
+new Chart(document.getElementById('districtBarChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+        labels: districtLabels,
+        datasets: [{
+            label: 'Total Samples',
+            data: districtTotals,
+            backgroundColor: palette.blue,
+            borderRadius: 4,
+        }, {
+            label: 'High Risk',
+            data: districtHighRisk,
+            backgroundColor: palette.red,
+            borderRadius: 4,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'top' }
+        },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+        }
+    }
+});
+
+// --- 4. Risk Level Distribution (Doughnut) ---
+new Chart(document.getElementById('riskPieChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Safe (< 30%)', 'Moderate (30-70%)', 'High Risk (> 70%)'],
+        datasets: [{
+            data: [{{ safe_count }}, {{ moderate_risk_count }}, {{ high_risk_count }}],
+            backgroundColor: [
+                'rgba(40, 167, 69, 0.75)',
+                'rgba(255, 193, 7, 0.75)',
+                'rgba(220, 53, 69, 0.75)',
+            ],
+            borderWidth: 2,
+            borderColor: '#fff',
+            hoverOffset: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 15, font: { size: 11 } } }
+        }
+    }
+});
+
+// --- 5. Radar Chart ---
+new Chart(document.getElementById('riskRadarChart').getContext('2d'), {
+    type: 'radar',
+    data: {
+        labels: ['Turbidity', 'pH Deviation', 'E.coli Rate', 'Nitrate Level', 'Overall Risk'],
+        datasets: [{
+            label: 'Current Water Metrics',
+            data: [
+                {{ radar_data.avg_turbidity }} * 10,
+                Math.abs(7.5 - {{ radar_data.avg_ph }}) * 20,
+                {{ radar_data.ecoli_rate }},
+                ({{ radar_data.avg_nitrate }} / 45) * 100,
+                {{ radar_data.avg_risk }}
+            ],
+            backgroundColor: 'rgba(0, 51, 102, 0.15)',
+            borderColor: 'rgba(0, 51, 102, 0.8)',
+            pointBackgroundColor: 'rgba(0, 51, 102, 0.9)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(0, 51, 102, 1)'
+        }]
+    },
+    options: {
+        elements: { line: { borderWidth: 2 } },
         scales: {
             r: {
                 angleLines: { display: true },
                 suggestedMin: 0,
                 suggestedMax: 100
             }
-        }
-    }
-});
-
-// Pie Chart for Samples vs Alerts
-const pieCtx = document.getElementById('samplesPieChart').getContext('2d');
-new Chart(pieCtx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Safe Samples', 'High Risk Samples', 'Active Alerts'],
-        datasets: [{
-            data: [
-                {{ total_samples }} - {{ high_risk_count }}, 
-                {{ high_risk_count }}, 
-                {{ active_alerts }}
-            ],
-            backgroundColor: [
-                'rgba(40, 167, 69, 0.7)',  // Green
-                'rgba(255, 193, 7, 0.7)',  // Yellow
-                'rgba(220, 53, 69, 0.7)'   // Red
-            ],
-            hoverOffset: 4
-        }]
-    },
-    options: {
-        plugins: {
-            legend: { position: 'bottom' }
         }
     }
 });

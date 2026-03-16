@@ -39,16 +39,34 @@ class WaterSample(models.Model):
     longitude = models.FloatField()
     date_collected = models.DateField(default=timezone.now)
 
-    # Water Parameters
+    # Basic Water Parameters
     turbidity = models.FloatField(help_text="Turbidity in NTU")
     ph = models.FloatField(help_text="pH value")
     ecoli_present = models.BooleanField(default=False, help_text="Presence of E.coli")
     nitrate_level = models.FloatField(help_text="Nitrate level in mg/L")
+
+    # Advanced Chemical Parameters
+    dissolved_oxygen = models.FloatField(default=0.0, help_text="DO in mg/L")
+    bod = models.FloatField(default=0.0, help_text="BOD in mg/L")
+    cod = models.FloatField(default=0.0, help_text="COD in mg/L")
+    nitrite_level = models.FloatField(default=0.0, help_text="Nitrite level in mg/L")
+    ammonia = models.FloatField(default=0.0, help_text="Ammonia in mg/L")
+    fluoride = models.FloatField(default=0.0, help_text="Fluoride in mg/L")
+    chloride = models.FloatField(default=0.0, help_text="Chloride in mg/L")
+    sulphate = models.FloatField(default=0.0, help_text="Sulphate in mg/L")
+
+    # Heavy Metals
+    lead = models.FloatField(default=0.0, help_text="Lead in mg/L")
+    arsenic = models.FloatField(default=0.0, help_text="Arsenic in mg/L")
+    mercury = models.FloatField(default=0.0, help_text="Mercury in mg/L")
+    cadmium = models.FloatField(default=0.0, help_text="Cadmium in mg/L")
+    iron = models.FloatField(default=0.0, help_text="Iron in mg/L")
     water_source = models.CharField(max_length=100, choices=[
         ('Borewell', 'Borewell'),
         ('River', 'River'),
         ('Lake', 'Lake'),
         ('Panchayat Supply', 'Panchayat Supply'),
+        ('Tapwater', 'Tapwater'),
         ('Other', 'Other')
     ])
 
@@ -64,19 +82,22 @@ class WaterSample(models.Model):
 
     def save(self, *args, **kwargs):
         engine = RiskEngine()
-        ci = engine.calculate_contamination_index(
-            self.turbidity, self.ph, self.ecoli_present, self.nitrate_level
-        )
-        prediction = engine.predict_risk(
-            self.turbidity, self.ph, self.ecoli_present, self.nitrate_level
-        )
+        
+        # All 18 parameters
+        params = [
+            self.turbidity, self.ph, self.ecoli_present, self.nitrate_level,
+            self.dissolved_oxygen, self.bod, self.cod, self.nitrite_level,
+            self.ammonia, self.fluoride, self.chloride, self.sulphate,
+            self.lead, self.arsenic, self.mercury, self.cadmium, self.iron
+        ]
+        
+        ci = engine.calculate_contamination_index(*params)
+        prediction = engine.predict_risk(*params)
         self.contamination_index = ci
         self.risk_score = prediction[1]  # Probability from ML model
 
         # Generate Insights
-        self.cause, self.effect, self.remedy = engine.generate_insights(
-            self.turbidity, self.ph, self.ecoli_present, self.nitrate_level
-        )
+        self.cause, self.effect, self.remedy = engine.generate_insights(*params)
 
         super().save(*args, **kwargs)
 

@@ -54,24 +54,87 @@
                     {{ form.water_source }}
                 </div>
                 <div>
-                    <label>pH Level (0-14)</label>
-                    {{ form.ph }}
-                </div>
-                <div>
                     <label>Turbidity (NTU)</label>
                     {{ form.turbidity }}
+                </div>
+                <div>
+                    <label>pH Level (0-14)</label>
+                    {{ form.ph }}
                 </div>
                 <div>
                     <label>Nitrate Level (mg/L)</label>
                     {{ form.nitrate_level }}
                 </div>
+            </div>
 
+            <div class="form-section">
+                <h3>Advanced Chemical Parameters</h3>
+                <div>
+                    <label>Dissolved Oxygen (mg/L)</label>
+                    {{ form.dissolved_oxygen }}
+                </div>
+                <div>
+                    <label>BOD (mg/L)</label>
+                    {{ form.bod }}
+                </div>
+                <div>
+                    <label>COD (mg/L)</label>
+                    {{ form.cod }}
+                </div>
+                <div>
+                    <label>Nitrite Level (mg/L)</label>
+                    {{ form.nitrite_level }}
+                </div>
+                <div>
+                    <label>Ammonia (mg/L)</label>
+                    {{ form.ammonia }}
+                </div>
+                <div>
+                    <label>Fluoride (mg/L)</label>
+                    {{ form.fluoride }}
+                </div>
+                <div>
+                    <label>Chloride (mg/L)</label>
+                    {{ form.chloride }}
+                </div>
+                <div>
+                    <label>Sulphate (mg/L)</label>
+                    {{ form.sulphate }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Heavy Metals</h3>
+                <div>
+                    <label>Lead (mg/L)</label>
+                    {{ form.lead }}
+                </div>
+                <div>
+                    <label>Arsenic (mg/L)</label>
+                    {{ form.arsenic }}
+                </div>
+                <div>
+                    <label>Mercury (mg/L)</label>
+                    {{ form.mercury }}
+                </div>
+                <div>
+                    <label>Cadmium (mg/L)</label>
+                    {{ form.cadmium }}
+                </div>
+                <div>
+                    <label>Iron (mg/L)</label>
+                    {{ form.iron }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Biological Data</h3>
                 <div style="grid-column: 1 / -1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
                     <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                         {{ form.ecoli_present }}
                         <span style="font-weight: 600;">E.coli Bacteria Detected?</span>
                     </label>
-                    <small style="display: block; margin-top: 5px; color: #666;">Check this box if positive for
+                    <small style="display: block; margin-top: 5px; color: #666;">Check this box if testing is positive for
                         E.coli/Coliform bacteria.</small>
                 </div>
             </div>
