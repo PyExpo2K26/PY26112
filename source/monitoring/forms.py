@@ -1,6 +1,7 @@
 from django import forms
 from .models import WaterSample
 
+
 class WaterSampleForm(forms.ModelForm):
     class Meta:
         model = WaterSample

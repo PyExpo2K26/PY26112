@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .risk_engine import RiskEngine
 
+
 class UserProfile(models.Model):
     ROLES = [
         ('Field Officer', 'Field Officer'),
@@ -18,14 +19,17 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.role}"
 
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
 
+
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     instance.userprofile.save()
+
 
 class WaterSample(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -34,7 +38,7 @@ class WaterSample(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     date_collected = models.DateField(default=timezone.now)
-    
+
     # Water Parameters
     turbidity = models.FloatField(help_text="Turbidity in NTU")
     ph = models.FloatField(help_text="pH value")
@@ -47,7 +51,7 @@ class WaterSample(models.Model):
         ('Panchayat Supply', 'Panchayat Supply'),
         ('Other', 'Other')
     ])
-    
+
     # Submitter Contact
     phone_number = models.CharField(max_length=20, blank=True, null=True, help_text="WhatsApp Number for Alerts")
 
@@ -57,7 +61,7 @@ class WaterSample(models.Model):
     cause = models.TextField(blank=True, null=True)
     effect = models.TextField(blank=True, null=True)
     remedy = models.TextField(blank=True, null=True)
-    
+
     def save(self, *args, **kwargs):
         engine = RiskEngine()
         ci = engine.calculate_contamination_index(
@@ -67,15 +71,15 @@ class WaterSample(models.Model):
             self.turbidity, self.ph, self.ecoli_present, self.nitrate_level
         )
         self.contamination_index = ci
-        self.risk_score = prediction[1] # Probability from ML model
-        
+        self.risk_score = prediction[1]  # Probability from ML model
+
         # Generate Insights
         self.cause, self.effect, self.remedy = engine.generate_insights(
             self.turbidity, self.ph, self.ecoli_present, self.nitrate_level
         )
 
         super().save(*args, **kwargs)
-        
+
         # Trigger Alert if High Risk
         alert_level = engine.determine_alert_level(self.risk_score)
         if self.risk_score > 70:
@@ -90,13 +94,14 @@ class WaterSample(models.Model):
     def __str__(self):
         return f"{self.village} - {self.date_collected}"
 
+
 class Alert(models.Model):
     ALERT_LEVELS = [
         ('Green', 'Low Risk'),
         ('Yellow', 'Moderate Risk'),
         ('Red', 'High Risk')
     ]
-    
+
     sample = models.OneToOneField(WaterSample, on_delete=models.CASCADE)
     village = models.CharField(max_length=100)
     district = models.CharField(max_length=100)
@@ -104,7 +109,8 @@ class Alert(models.Model):
     alert_level = models.CharField(max_length=20, choices=ALERT_LEVELS)
     created_at = models.DateTimeField(auto_now_add=True)
     resolved = models.BooleanField(default=False)
-    resolved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='resolved_alerts')
+    resolved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,
+                                    blank=True, related_name='resolved_alerts')
     resolution_notes = models.TextField(blank=True)
 
     def __str__(self):

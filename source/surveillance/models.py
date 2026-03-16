@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Village(models.Model):
     name = models.CharField(max_length=100)
     latitude = models.FloatField()
@@ -7,6 +8,7 @@ class Village(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class HealthReport(models.Model):
     village = models.ForeignKey(Village, on_delete=models.CASCADE)

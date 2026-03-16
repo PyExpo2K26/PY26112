@@ -1,0 +1,8 @@
+{
+    "venvPath": "d:\\PY26112",
+    "venv": ".venv",
+    "extraPaths": [
+        "d:\\PY26112\\source",
+        "d:\\PY26112\\Backend"
+    ]
+}
