@@ -13,19 +13,20 @@ try:
 except FileNotFoundError:
     ml_model = None
 
+
 @csrf_exempt
 def sync_data(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             results = []
-            
+
             for item in data:
                 village, _ = Village.objects.get_or_create(
                     name=item['village_name'],
                     defaults={'latitude': item.get('latitude', 0.0), 'longitude': item.get('longitude', 0.0)}
                 )
-                
+
                 # Format features for the ML Model
                 features = pd.DataFrame([{
                     'diarrhea_cases': item.get('diarrhea_cases', 0),
@@ -35,9 +36,9 @@ def sync_data(request):
                     'water_turbidity': item.get('water_turbidity', 1.0),
                     'rainfall_mm': item.get('rainfall_mm', 0.0),
                 }])
-                
+
                 risk = int(ml_model.predict(features)[0]) if ml_model else 0
-                
+
                 report = HealthReport.objects.create(
                     village=village,
                     diarrhea_cases=item.get('diarrhea_cases', 0),
@@ -47,11 +48,12 @@ def sync_data(request):
                     risk_score_output=risk
                 )
                 results.append({"report_id": report.id, "risk": risk, "village": village.name})
-            
+
             return JsonResponse({"status": "success", "synced_records": len(results), "results": results})
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)}, status=400)
     return JsonResponse({"status": "invalid method"}, status=405)
+
 
 def dashboard_data(request):
     villages = Village.objects.all()
@@ -71,6 +73,7 @@ def dashboard_data(request):
                 "last_updated": latest.timestamp.strftime('%Y-%m-%d %H:%M')
             })
     return JsonResponse(data, safe=False)
+
 
 def dashboard_ui(request):
     from django.shortcuts import render

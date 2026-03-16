@@ -3,6 +3,7 @@ from sklearn.linear_model import LogisticRegression
 import pickle
 import os
 
+
 class RiskEngine:
     def __init__(self):
         self.model = None
@@ -22,11 +23,11 @@ class RiskEngine:
                 [10.0, 9.0, 1, 60.0, 95],  # Very High risk
                 [1.0, 7.2, 0, 5.0, 5],     # Safe
             ])
-            y = np.array([0, 0, 1, 1, 1, 0]) # 0=Safe, 1=Risky
+            y = np.array([0, 0, 1, 1, 1, 0])  # 0=Safe, 1=Risky
 
             model = LogisticRegression()
             model.fit(X, y)
-            
+
             with open(self.model_path, 'wb') as f:
                 pickle.dump(model, f)
             self.model = model
@@ -50,11 +51,11 @@ class RiskEngine:
     def predict_risk(self, turbidity, ph, ecoli_present, nitrate):
         """Predicts risk probability using ML model."""
         ci = self.calculate_contamination_index(turbidity, ph, ecoli_present, nitrate)
-        
+
         # Prepare features for ML
         ecoli_val = 1 if ecoli_present else 0
         features = np.array([[turbidity, ph, ecoli_val, nitrate, ci]])
-        
+
         # Get probability of class 1 (High Risk)
         risk_prob = self.model.predict_proba(features)[0][1] * 100
         return ci, round(risk_prob, 2)
