@@ -1,40 +1,41 @@
 {% extends 'monitoring/base.html' %}
+{% block nl %}active{% endblock %}
+{% block tb %}<span>Login</span>{% endblock %}
 
 {% block content %}
-<div style="max-width: 400px; margin: 4rem auto;">
-    <div class="card" style="text-align: center; padding: 40px;">
-        <h2 style="color: var(--gov-blue); margin-bottom: 20px;">Officer Login</h2>
-        <p style="color: #666; margin-bottom: 30px;">Access the secure Water Surveillance Portal</p>
+<div style="max-width:420px; margin:56px auto;">
+    <div style="text-align:center; margin-bottom:26px;">
+        <div style="width:52px; height:52px; background:linear-gradient(135deg,#3b82f6,#1a56db); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin:0 auto 13px; box-shadow:0 6px 18px rgba(26,86,219,.22);">💧</div>
+        <h1 style="font-size:1.4rem; font-weight:800; color:#111827;">Welcome Back</h1>
+        <p style="font-size:.875rem; color:#6b7280; margin-top:5px;">Sign in to the Water Surveillance Portal</p>
+    </div>
+
+    <div class="card">
+        {% if form.errors %}
+        <div style="background:#fff5f5; border:1px solid #fca5a5; border-radius:8px; padding:10px 14px; margin-bottom:16px; font-size:.85rem; color:#dc2626;">
+            ⚠️ Invalid username or password. Please try again.
+        </div>
+        {% endif %}
 
         <form method="post">
             {% csrf_token %}
-            <div style="text-align: left; margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Username</label>
+            <div class="fg">
+                <label class="fl">Username</label>
                 {{ form.username }}
             </div>
-            <div style="text-align: left; margin-bottom: 25px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Password</label>
+            <div class="fg" style="margin-bottom:22px;">
+                <label class="fl">Password</label>
                 {{ form.password }}
             </div>
-
-            <button type="submit" class="btn" style="width: 100%; padding: 12px; font-size: 1rem;">Secure Login</button>
+            <button type="submit" class="btn btn-blue" style="width:100%; justify-content:center; padding:11px; font-size:.95rem;">
+                🔐 Secure Login
+            </button>
         </form>
     </div>
-    <p style="text-align: center; color: #888; margin-top: 20px; font-size: 0.9rem;">
-        Authorized Personnel Only<br>
-        Department of Water Sanitation
+
+    <p style="text-align:center; color:#9ca3af; font-size:.76rem; margin-top:16px;">
+        Authorized Government Personnel Only<br>
+        Dept. of Water Sanitation &amp; Public Health
     </p>
 </div>
-
-<style>
-    /* Login Form Styles Override */
-    input[type="text"],
-    input[type="password"] {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-    }
-</style>
 {% endblock %}
