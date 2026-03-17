@@ -3,10 +3,13 @@ from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
+from django.utils import timezone
 from django.db.models import Count, Avg, Q
 from django.db.models.functions import TruncMonth
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
 from django.http import JsonResponse
-from .models import WaterSample, Alert
+from .models import WaterSample, Alert, VillageProfile
 from .forms import WaterSampleForm
 from .utils import send_sms_alert
 
@@ -238,4 +241,64 @@ def home(request):
         'districts_count': districts_count,
     }
     return render(request, 'monitoring/home.html', context)
+
+
+# --- HACKATHON PIVOT FEATURES ---
+
+@csrf_exempt
+def twilio_webhook(request):
+    """HACKATHON PIVOT: Offline SMS Fallback using Twilio."""
+    if request.method == 'POST':
+        body = request.POST.get('Body', '').strip().lower()
+        sender = request.POST.get('From', '')
+        
+        # Simple parser for hackathon demo. Expected format: "Village: Sulur, pH: 6.5, Turbidity: 10"
+        try:
+            parts = dict(item.split(':') for item in body.split(','))
+            village_name = parts.get('village', '').strip().title()
+            ph_val = float(parts.get('ph', 7.0))
+            turbidity_val = float(parts.get('turbidity', 5.0))
+            
+            # Log Rapid Sample
+            sample = WaterSample.objects.create(
+                village=village_name,
+                district="Unknown (SMS)",
+                latitude=0.0,
+                longitude=0.0,
+                ph=ph_val,
+                turbidity=turbidity_val,
+                water_source="SMS Report",
+                phone_number=sender
+            )
+            return HttpResponse('<Response><Message>WSP: Offline sample logged successfully. Risk engine triggered.</Message></Response>', content_type='text/xml')
+        except Exception as e:
+            return HttpResponse('<Response><Message>WSP Error: Invalid format. Use "Village: X, pH: Y, Turbidity: Z"</Message></Response>', content_type='text/xml')
+
+    return HttpResponse("OK")
+
+
+def smart_dispatch(request):
+    """HACKATHON PIVOT: Smart Dispatch AI prioritizing high-risk areas based on population."""
+    alerts = Alert.objects.filter(resolved=False)
+    dispatch_list = []
+    
+    for alert in alerts:
+        try:
+            profile = VillageProfile.objects.get(name=alert.village)
+            pop = profile.population
+        except VillageProfile.DoesNotExist:
+            pop = 5000 # Default assumption
+            
+        # Triage Score = Risk Score * Population Density Factor 
+        triage_score = (alert.risk_score * pop) / 1000
+        
+        dispatch_list.append({
+            'alert': alert,
+            'population': pop,
+            'triage_score': round(triage_score, 1)
+        })
+        
+    # Sort by highest triage score first
+    dispatch_list.sort(key=lambda x: x['triage_score'], reverse=True)
+    return render(request, 'monitoring/smart_dispatch.html', {'dispatch_list': dispatch_list})
 

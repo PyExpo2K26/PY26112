@@ -1,0 +1,59 @@
+{% extends 'monitoring/base.html' %}
+{% block ns %}active{% endblock %}
+{% block tb %}<span>Smart Dispatch</span>{% endblock %}
+
+{% block content %}
+<div style="max-width:1000px; margin:0 auto;">
+    <div class="pg-hd">
+        <h1>Smart Dispatch Dashboard</h1>
+        <p>Active Predictive Logistics Engine prioritizing deployments based on Population Density and AI Risk Scores</p>
+    </div>
+
+    <div class="card">
+        <h3 style="color: var(--gov-blue); border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 20px;">
+            🚑 Prioritized Mobile Testing Van Routes
+        </h3>
+        
+        {% if dispatch_list %}
+        <table class="tbl" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Priority</th>
+                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Village/Area</th>
+                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Est. Population</th>
+                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Base Risk Score</th>
+                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd; background: #e6f7ff;">Triage Score (AI)</th>
+                    <th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in dispatch_list %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; font-weight: bold; color: {% if loop.index == 1 %}#d32f2f{% else %}#555{% endif %};">
+                        #{{ forloop.counter }}
+                    </td>
+                    <td style="padding: 12px; font-weight: 600;">{{ item.alert.village }}</td>
+                    <td style="padding: 12px;">{{ item.population }}</td>
+                    <td style="padding: 12px; color: {% if item.alert.risk_score > 70 %}#d32f2f{% else %}#f57c00{% endif %};">
+                        {{ item.alert.risk_score|floatformat:1 }}%
+                    </td>
+                    <td style="padding: 12px; font-weight: 900; background: #f0f8ff;">
+                        💥 {{ item.triage_score }}
+                    </td>
+                    <td style="padding: 12px; text-align: center;">
+                        <button class="btn" style="background:#0284c7; padding: 6px 12px; font-size: 0.85rem;">Dispatch Van</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 40px; color: #6b7280;">
+            <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
+            <h3 style="margin: 0;">No Active Emergencies</h3>
+            <p>All known high-risk areas have been resolved or dispatched.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

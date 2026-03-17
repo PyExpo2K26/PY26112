@@ -8,7 +8,56 @@ class RiskEngine:
     def __init__(self):
         self.model = None
         self.model_path = os.path.join(os.path.dirname(__file__), 'risk_model.pkl')
+        self.current_modifiers = None
         self.ensure_model_exists()
+
+    def get_context_modifiers(self, village_name):
+        """HACKATHON PIVOT: Fetches OpenWeather triggers and PHC Health-Sync data."""
+        if self.current_modifiers is not None:
+            return self.current_modifiers
+
+        from .models import PHCHealthReport, VillageProfile
+        from django.utils import timezone
+        import datetime
+        import random
+
+        modifiers = {
+            'ci_boost': 0,
+            'risk_boost': 0.0,
+            'insights': [],
+            'effects': [],
+            'remedies': []
+        }
+
+        # 1. Early Warning Weather Trigger (Simulated OpenWeather API)
+        # Simulates heavy rainfall forecasted for the area triggering early warnings
+        rainfall_forecast = random.choice([0, 10, 20, 150]) 
+        if rainfall_forecast > 100:
+            modifiers['ci_boost'] += 20
+            modifiers['risk_boost'] += 15.0
+            modifiers['insights'].append(f"OpenWeather API: Severe rainfall forecast ({rainfall_forecast}mm). High risk of agricultural runoff and surface water contamination.")
+            modifiers['effects'].append("Likely spike in water turbidity and fecal coliforms.")
+            modifiers['remedies'].append("Pre-emptive chlorination and community boiling advisories issued.")
+
+        # 2. PHC Health-Sync (Community Data)
+        try:
+            profile = VillageProfile.objects.get(name=village_name)
+            recent_date = timezone.now().date() - datetime.timedelta(days=7)
+            recent_reports = PHCHealthReport.objects.filter(village=profile, date_reported__gte=recent_date)
+            
+            total_gastro = sum(r.gastro_cases for r in recent_reports)
+            if total_gastro >= 5:
+                # Active outbreak overriding standard water parameters
+                modifiers['ci_boost'] += 50
+                modifiers['risk_boost'] += 40.0
+                modifiers['insights'].append(f"PHC Health-Sync: {total_gastro} recent gastrointestinal cases reported in local primary health center.")
+                modifiers['effects'].append("Active community outbreak confirmed by human sensor data.")
+                modifiers['remedies'].append("DISPATCH EMERGENCY MEDICAL TEAM AND MOBILE TESTING VAN IMMEDIATELY.")
+        except VillageProfile.DoesNotExist:
+            pass
+            
+        self.current_modifiers = modifiers
+        return modifiers
 
     def ensure_model_exists(self):
         """Trains a dummy model if one doesn't exist to handle the new 18-feature shape."""
@@ -35,10 +84,10 @@ class RiskEngine:
             with open(self.model_path, 'rb') as f:
                 self.model = pickle.load(f)
 
-    def calculate_contamination_index(self, turbidity, ph, ecoli_present, nitrate,
+    def calculate_contamination_index(self, village_name, turbidity, ph, ecoli_present, nitrate,
                                       do, bod, cod, nitrite, ammonia, fluoride,
                                       chloride, sulphate, lead, arsenic, mercury, cadmium, iron):
-        """Calculates Contamination Index based on all parameter rules."""
+        """Calculates Contamination Index based on all parameter rules and active context."""
         index = 0
         if turbidity > 5: index += 10
         if not (6.5 <= ph <= 8.5): index += 10
@@ -55,15 +104,18 @@ class RiskEngine:
         if lead > 0.01 or arsenic > 0.01 or mercury > 0.001 or cadmium > 0.003:
             index += 50
             
+        modifiers = self.get_context_modifiers(village_name)
+        index += modifiers['ci_boost']
+            
         return min(index, 100)
 
-    def predict_risk(self, turbidity, ph, ecoli_present, nitrate,
+    def predict_risk(self, village_name, turbidity, ph, ecoli_present, nitrate,
                      do, bod, cod, nitrite, ammonia, fluoride,
                      chloride, sulphate, lead, arsenic, mercury, cadmium, iron):
-        """Predicts risk probability using ML model with all 18 features."""
+        """Predicts risk probability using ML model and situational context."""
         # Calculate CI
         ci = self.calculate_contamination_index(
-            turbidity, ph, ecoli_present, nitrate,
+            village_name, turbidity, ph, ecoli_present, nitrate,
             do, bod, cod, nitrite, ammonia, fluoride,
             chloride, sulphate, lead, arsenic, mercury, cadmium, iron
         )
@@ -83,12 +135,15 @@ class RiskEngine:
             self.ensure_model_exists()
             risk_prob = self.model.predict_proba(features)[0][1] * 100
 
-        return ci, round(risk_prob, 2)
+        modifiers = self.get_context_modifiers(village_name)
+        risk_prob += modifiers['risk_boost']
 
-    def generate_insights(self, turbidity, ph, ecoli_present, nitrate,
+        return ci, min(round(risk_prob, 2), 100.0)
+
+    def generate_insights(self, village_name, turbidity, ph, ecoli_present, nitrate,
                           do, bod, cod, nitrite, ammonia, fluoride,
                           chloride, sulphate, lead, arsenic, mercury, cadmium, iron):
-        """Generates cause, effect, and remedy based on advanced parameters."""
+        """Generates cause, effect, and remedy based on advanced parameters and context."""
         causes = []
         effects = []
         remedies = []
@@ -135,6 +190,12 @@ class RiskEngine:
             causes.append("Parameters are within safe limits.")
             effects.append("Safe for general use.")
             remedies.append("Routine monitoring and source hygiene.")
+
+        modifiers = self.get_context_modifiers(village_name)
+        if modifiers['insights']:
+            causes.extend(modifiers['insights'])
+            effects.extend(modifiers['effects'])
+            remedies.extend(modifiers['remedies'])
 
         return " ".join(causes), " ".join(effects), " ".join(remedies)
 

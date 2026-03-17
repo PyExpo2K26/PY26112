@@ -10,5 +10,9 @@ urlpatterns = [
     path('alerts/', views.alert_list, name='alert_list'),
     path('alerts/<int:alert_id>/resolve/', views.resolve_alert, name='resolve_alert'),
     path('send-sms/<int:sample_id>/', views.send_sms, name='send_sms'),
+    
+    # HACKATHON PIVOT: Offline SMS & Smart Dispatch Features
+    path('twilio-webhook/', views.twilio_webhook, name='twilio_webhook'),
+    path('smart-dispatch/', views.smart_dispatch, name='smart_dispatch'),
 ]
 

@@ -90,14 +90,13 @@ class WaterSample(models.Model):
             self.ammonia, self.fluoride, self.chloride, self.sulphate,
             self.lead, self.arsenic, self.mercury, self.cadmium, self.iron
         ]
-        
-        ci = engine.calculate_contamination_index(*params)
-        prediction = engine.predict_risk(*params)
+        ci = engine.calculate_contamination_index(self.village, *params)
+        prediction = engine.predict_risk(self.village, *params)
         self.contamination_index = ci
         self.risk_score = prediction[1]  # Probability from ML model
 
         # Generate Insights
-        self.cause, self.effect, self.remedy = engine.generate_insights(*params)
+        self.cause, self.effect, self.remedy = engine.generate_insights(self.village, *params)
 
         super().save(*args, **kwargs)
 
@@ -136,3 +135,29 @@ class Alert(models.Model):
 
     def __str__(self):
         return f"{self.alert_level} Alert - {self.village}"
+
+
+# --- HACKATHON PIVOT: ACTIVE PREDICTIVE LOGISTICS ENGINE ---
+
+class VillageProfile(models.Model):
+    """Stores persistent data for communities to calculate Triage Scores and track health."""
+    name = models.CharField(max_length=100, unique=True, help_text="Village Name")
+    district = models.CharField(max_length=100)
+    population = models.IntegerField(default=5000, help_text="Estimated Population")
+    latitude = models.FloatField(default=0.0)
+    longitude = models.FloatField(default=0.0)
+
+    def __str__(self):
+        return f"{self.name} ({self.population} pop)"
+
+
+class PHCHealthReport(models.Model):
+    """Primary Health Centre (PHC) Community Data Sync. Acts as a human sensor."""
+    village = models.ForeignKey(VillageProfile, on_delete=models.CASCADE, related_name='health_reports')
+    date_reported = models.DateField(default=timezone.now)
+    gastro_cases = models.IntegerField(default=0, help_text="Sudden spike in diarrhea/vomiting")
+    fever_cases = models.IntegerField(default=0)
+    notes = models.TextField(blank=True, help_text="Officer notes on outbreak severity")
+
+    def __str__(self):
+        return f"{self.village.name} Report - {self.gastro_cases} Gastro Cases"

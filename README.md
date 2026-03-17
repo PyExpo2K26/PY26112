@@ -1,95 +1,104 @@
-Project Overview:
+# 💧 Water Surveillance Portal (WSP)
 
-Water-borne diseases such as cholera, typhoid, and diarrhea continue to pose serious health risks in rural and remote areas due to poor healthcare access, delayed disease reporting, low awareness, and lack of real-time monitoring systems. Limited internet connectivity and the absence of early warning mechanisms further worsen outbreak response times.
+**Government Water Surveillance & Early Warning System**
 
-**AquaHealth** is a smart, low-cost, and rural-friendly health monitoring system that can continuously track community health and environmental data, detect early signs of outbreaks, and provide timely alerts to health authorities and local communities. Such a system can enable faster intervention, reduce disease spread, and improve overall public health outcomes in underserved regions.
+The Water Surveillance Portal (WSP) is an AI-powered system designed to help government agencies, like the Department of Water Sanitation, monitor water quality, predict contamination outbreaks, and protect public health. By combining real-time data collection from field officers with advanced machine learning models, WSP acts as an early warning system against waterborne diseases.
 
-Objectives:
+---
 
-Proposed Solution:
+## 🌟 Key Features
 
-The proposed system is a technology-driven health monitoring platform that integrates community-level data collection, intelligent analysis, and alert mechanisms.
+### 1. Advanced Water Sample Collection
+Field officers can submit comprehensive water quality data from any location. The system tracks 18 distinct parameters:
+*   **Location:** District, Village, Coordinates
+*   **Physical:** Water Source, Turbidity (NTU)
+*   **Chemical:** pH Level, Nitrates, Nitrites, Ammonia, Fluoride, Chloride, Sulphate
+*   **Oxygen:** Dissolved Oxygen (DO), Biological Oxygen Demand (BOD), Chemical Oxygen Demand (COD)
+*   **Heavy Metals:** Lead, Arsenic, Mercury, Cadmium, Iron
+*   **Biological:** Presence of E.coli
 
-Key Components:
+### 2. AI-Powered Risk Prediction (Risk Engine)
+The core of the system is the **Risk Engine**. It dynamically calculates a "Contamination Index" based on the submitted parameters and utilizes a Machine Learning model (Logistic Regression/Random Forest) to predict the probability of a waterborne disease outbreak. 
+*   **Instant Scoring:** Every sample receives a calculated risk score (0% to 100%).
+*   **Critical Thresholds:** Any sample scoring above 50% triggers a **Moderate Risk (Yellow)** alert, and anything above 70% triggers a **High Risk (Red)** alert. The presence of any toxic heavy metals instantly triggers a critical alert.
 
-1. Community-Based Data Collection
+### 3. Automated System Alerts & Resolution
+High-risk areas are immediately prioritized on the **Alerts Dashboard**.
+*   **Tracking:** Active alerts show the affected village, district, and severity level.
+*   **Actionable Resolution:** Once environmental issues are addressed, administrators can safely mark alerts as "Resolved" (Water is safe) using secure tracking interfaces.
 
-    1. Health reports from local health workers
+### 4. Interactive Data Dashboard
+A live dashboard visualizes the health of the entire water network:
+*   **Overall Metrics:** Total samples tested, active alerts, and overall network safety percentage.
+*   **Monthly Trends:** Line charts showing total tests vs. high-risk detections over time.
+*   **Risk Radar:** A radar chart showing the average levels of critical contaminants (pH, Turbidity, DO, BOD, etc.).
+*   **Regional Statistics:** Bar charts mapping highest-risk areas by district and water source type.
 
-    2. Symptom reporting via mobile or web apps
+### 5. Smart Insights & Action Plans
+The AI generates specific, targeted insights for every problematic sample:
+*   **Identified Cause:** (e.g., "High Arsenic levels indicating industrial runoff.")
+*   **Effect on Health:** (e.g., "Risk of long-term cumulative poisoning.")
+*   **Immediate Remedy:** Suggested remediation actions for field teams (e.g., "Install reverse osmosis filters immediately.")
 
-    3. Environmental data (water quality, rainfall, sanitation indicators)
+### 6. Emergency Notifications
+A built-in notification system allows administrators to seamlessly send SMS/WhatsApp alerts directly to local contacts associated with contaminated water sources.
 
-2. AI/ML-Powered Disease Detection & Prediction
+---
 
-    1. Machine learning models to identify patterns and trends
+## 🛠️ Technology Stack
 
-    2. Predict potential outbreaks based on historical and real-time data
+WSP is built with a robust, modern, and open-source technology stack:
 
-3. Early Warning & Alert System
+### Backend Architecture
+*   **Framework:** Django (Python) - robust, secure MVC framework.
+*   **Database:** SQLite (default for development), migratable to PostgreSQL for production.
+*   **Authentication:** Built-in Django Auth subsystem for Role-Based Access Control (Field Officers vs. Admins).
+*   **Logic:** Custom `risk_engine.py` orchestrating scoring rules and ML inferences.
 
-    1. SMS/app notifications for high-risk areas
+### Machine Learning (AI)
+*   **Libraries:** `scikit-learn`, `pandas`, `numpy`
+*   **Models:** `RandomForestClassifier` and `LogisticRegression`.
+*   **Pipelines:** Training scripts (`train.py`) designed to ingest physical, chemical, and synthetic environmental data to calibrate the inference models dynamically. 
 
-    2. Alerts to healthcare officials and local administrators
+### Frontend & UI
+*   **Templates:** Django Templating Language (HTML5).
+*   **Styling:** Pure Vanilla CSS (Flexbox, CSS Grid) with a clean, highly-accessible, government-standard aesthetic (blues, clear typography).
+*   **Interactivity:** Vanilla JavaScript for form validation, dynamic coordinate generation based on district selection, and asynchronous AJAX calls.
+*   **Data Visualization:** `Chart.js` integrated for rendering interactive radar, line, and bar charts securely passing JSON-serialized data from the Python backend.
 
-4. Dashboard & Decision Support Tools
+---
 
-    1. Visual analytics for disease trends
+## 🚀 Installation & Setup
 
-    2. Risk maps and outbreak predictions
+To run the WSP project locally on a Windows machine:
 
-    3. Reports for health authorities
-
-5. Inclusive & Rural-Friendly Design
-
-    1. Simple user interface
-
-    2. Low-bandwidth support
-
-    3. Multilingual accessibility
-
-Tech Stack:
-
-1. Frontend: HTML, CSS
-
-2. Backend: Python (Django,FastAPI)
-
-3. Database: MySQL, SQLite
-
-4. Modules imported : Scikit-learn, Pandas, NumPy, joblib, xgboost, matplotlib
-
-5. Visualization: Chart.js 
-
-6. Notifications: SMS API
-
-Future Enhancements:
-
-1.Integration with IoT-based water quality sensors
-2.Mobile app for offline data collection
-3.Government health system integration
-4.Advanced deep learning models
-5.GIS-based outbreak mapping
-
- Target Users:
-
-1.Rural communities
-2.Health workers
-3.Local health departments
-4.Government agencies
-5.NGOs and public health organizations
-
-Expected Impact:
-
-1.Faster detection of disease outbreaks
-2.Reduced mortality and morbidity
-3.Improved public health response
-4.Data-driven healthcare planning
-5.Empowered rural communities
-
- License:
-
-This project is developed for academic and research purposes. Licensing can be updated as per deployment requirements.
-
- Contribution:
-
-Contributions, suggestions, and improvements are welcome. Feel free to fork this repository and submit pull requests.
+1. **Clone the Repository** (or navigate to the project directory).
+2. **Set up a Virtual Environment**:
+   ```bash
+   python -m venv .venv
+   .venv\Scripts\activate
+   ```
+3. **Install Dependencies**:
+   ```bash
+   pip install django scikit-learn pandas numpy
+   ```
+4. **Train the ML Model** (Initial generation of synthetic data and `.pkl` models):
+   ```bash
+   python source/ml/train.py
+   python Backend/train_waterborne_model.py
+   ```
+5. **Set up the Database**:
+   ```bash
+   cd source
+   python manage.py makemigrations monitoring
+   python manage.py migrate
+   ```
+6. **(Optional) Create a Superuser**:
+   ```bash
+   python manage.py createsuperuser
+   ```
+7. **Run the Development Server**:
+   ```bash
+   python manage.py runserver
+   ```
+8. **Access the Portal**: Open a web browser and navigate to `http://127.0.0.1:8000/`.
