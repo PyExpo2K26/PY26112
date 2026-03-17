@@ -14,5 +14,7 @@ urlpatterns = [
     # HACKATHON PIVOT: Offline SMS & Smart Dispatch Features
     path('twilio-webhook/', views.twilio_webhook, name='twilio_webhook'),
     path('smart-dispatch/', views.smart_dispatch, name='smart_dispatch'),
+    path('smart-dispatch/<int:alert_id>/dispatch/', views.dispatch_van, name='dispatch_van'),
+    path('smart-dispatch/<int:alert_id>/resolve/', views.resolve_dispatch, name='resolve_dispatch'),
 ]
 

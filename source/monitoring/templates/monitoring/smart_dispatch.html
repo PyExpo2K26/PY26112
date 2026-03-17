@@ -1,59 +1,135 @@
 {% extends 'monitoring/base.html' %}
-{% block ns %}active{% endblock %}
+{% block nav_dispatch %}active{% endblock %}
 {% block tb %}<span>Smart Dispatch</span>{% endblock %}
 
 {% block content %}
-<div style="max-width:1000px; margin:0 auto;">
+<div style="max-width:1100px; margin:0 auto;">
     <div class="pg-hd">
-        <h1>Smart Dispatch Dashboard</h1>
-        <p>Active Predictive Logistics Engine prioritizing deployments based on Population Density and AI Risk Scores</p>
+        <h1>🚑 Smart Dispatch Dashboard</h1>
+        <p>Active Predictive Logistics Engine — Dispatch vans, notify recovery teams, and broadcast safety updates to the public.</p>
     </div>
 
-    <div class="card">
-        <h3 style="color: var(--gov-blue); border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 20px;">
-            🚑 Prioritized Mobile Testing Van Routes
+    <!-- ───── ACTIVE EMERGENCIES (Not yet dispatched) ───── -->
+    <div class="card" style="margin-bottom: 28px;">
+        <h3 style="color: var(--primary, #0f4c81); border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.2rem;">🔴</span> Pending Dispatch
         </h3>
-        
-        {% if dispatch_list %}
-        <table class="tbl" style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background: #f8f9fa;">
-                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Priority</th>
-                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Village/Area</th>
-                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Est. Population</th>
-                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Base Risk Score</th>
-                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd; background: #e6f7ff;">Triage Score (AI)</th>
-                    <th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd;">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in dispatch_list %}
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px; font-weight: bold; color: {% if loop.index == 1 %}#d32f2f{% else %}#555{% endif %};">
+
+        {% for item in dispatch_list %}
+            {% if not item.alert.dispatched and not item.alert.resolved %}
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid #f0f0f0;">
+                <div style="display: flex; align-items: center; gap: 20px; flex: 1;">
+                    <div style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; font-weight: 800; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; min-width: 36px; text-align: center;">
                         #{{ forloop.counter }}
-                    </td>
-                    <td style="padding: 12px; font-weight: 600;">{{ item.alert.village }}</td>
-                    <td style="padding: 12px;">{{ item.population }}</td>
-                    <td style="padding: 12px; color: {% if item.alert.risk_score > 70 %}#d32f2f{% else %}#f57c00{% endif %};">
-                        {{ item.alert.risk_score|floatformat:1 }}%
-                    </td>
-                    <td style="padding: 12px; font-weight: 900; background: #f0f8ff;">
-                        💥 {{ item.triage_score }}
-                    </td>
-                    <td style="padding: 12px; text-align: center;">
-                        <button class="btn" style="background:#0284c7; padding: 6px 12px; font-size: 0.85rem;">Dispatch Van</button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <div style="text-align: center; padding: 40px; color: #6b7280;">
-            <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
-            <h3 style="margin: 0;">No Active Emergencies</h3>
-            <p>All known high-risk areas have been resolved or dispatched.</p>
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem; color: #1e293b;">{{ item.alert.village }}</div>
+                        <div style="font-size: 0.78rem; color: #94a3b8;">{{ item.alert.district }} · Pop. {{ item.population }}</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 24px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Risk</div>
+                        <div style="font-size: 1.1rem; font-weight: 800; color: #ef4444;">{{ item.alert.risk_score|floatformat:1 }}%</div>
+                    </div>
+                    <div style="text-align: center; background: #f0f8ff; padding: 8px 16px; border-radius: 8px;">
+                        <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Triage</div>
+                        <div style="font-size: 1.1rem; font-weight: 900; color: #0284c7;">{{ item.triage_score }}</div>
+                    </div>
+                    <form method="POST" action="{% url 'dispatch_van' item.alert.id %}" style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); padding: 10px 20px; font-size: 0.85rem; white-space: nowrap;">
+                            🚐 Dispatch Van
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+
+        {% with pending_count=0 %}
+        {% for item in dispatch_list %}
+            {% if not item.alert.dispatched and not item.alert.resolved %}
+                {% with pending_count=1 %}{% endwith %}
+            {% endif %}
+        {% endfor %}
+        {% endwith %}
+
+        <div id="no-pending" style="text-align: center; padding: 30px; color: #94a3b8; display: none;">
+            <div style="font-size: 2rem; margin-bottom: 6px;">✅</div>
+            <p style="margin: 0; font-size: 0.9rem;">All emergencies have been dispatched.</p>
         </div>
-        {% endif %}
+    </div>
+
+    <!-- ───── DISPATCHED (Van sent, awaiting resolution) ───── -->
+    <div class="card" style="margin-bottom: 28px;">
+        <h3 style="color: #d97706; border-bottom: 2px solid #fef3c7; padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.2rem;">🟡</span> Dispatched — Awaiting Resolution
+        </h3>
+
+        {% for item in dispatch_list %}
+            {% if item.alert.dispatched and not item.alert.resolved %}
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid #f0f0f0; background: #fffbeb; margin: -0 -24px; padding-left: 24px; padding-right: 24px;">
+                <div style="display: flex; align-items: center; gap: 20px; flex: 1;">
+                    <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 800; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px;">
+                        🚐
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem; color: #1e293b;">{{ item.alert.village }}</div>
+                        <div style="font-size: 0.78rem; color: #92400e;">
+                            Van dispatched {{ item.alert.dispatched_at|date:"M d, H:i" }} · SMS sent to recovery team ✅
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <span style="background: rgba(245,158,11,0.15); color: #b45309; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">IN PROGRESS</span>
+                    <form method="POST" action="{% url 'resolve_dispatch' item.alert.id %}" style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn" style="background: linear-gradient(135deg, #10b981, #059669); padding: 10px 20px; font-size: 0.85rem; white-space: nowrap;">
+                            ✅ Mark Resolved & Notify Public
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+
+        <div id="no-dispatched" style="text-align: center; padding: 20px; color: #94a3b8; display: none;">
+            <p style="margin: 0; font-size: 0.85rem;">No vans currently in the field.</p>
+        </div>
+    </div>
+
+    <!-- ───── RESOLVED (Problem solved, public notified) ───── -->
+    <div class="card">
+        <h3 style="color: #059669; border-bottom: 2px solid #d1fae5; padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.2rem;">🟢</span> Resolved — Public Notified
+        </h3>
+
+        {% for item in dispatch_list %}
+            {% if item.alert.resolved %}
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f0f0f0;">
+                <div style="display: flex; align-items: center; gap: 20px; flex: 1;">
+                    <div style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; font-weight: 800; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px;">
+                        ✅
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem; color: #1e293b;">{{ item.alert.village }}</div>
+                        <div style="font-size: 0.78rem; color: #059669;">
+                            Resolved {{ item.alert.resolved_at|date:"M d, H:i" }} · SMS broadcast to public ✅
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="background: rgba(16,185,129,0.12); color: #059669; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">WATER IS SAFE</span>
+                    <span style="color: #059669; font-weight: 700; font-size: 0.85rem;">📱 Public Notified</span>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+
+        <div id="no-resolved" style="text-align: center; padding: 20px; color: #94a3b8; display: none;">
+            <p style="margin: 0; font-size: 0.85rem;">No resolved dispatches yet.</p>
+        </div>
     </div>
 </div>
 {% endblock %}

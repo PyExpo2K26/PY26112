@@ -279,7 +279,7 @@ def twilio_webhook(request):
 
 def smart_dispatch(request):
     """HACKATHON PIVOT: Smart Dispatch AI prioritizing high-risk areas based on population."""
-    alerts = Alert.objects.filter(resolved=False)
+    alerts = Alert.objects.filter(alert_level='Red').order_by('-created_at')
     dispatch_list = []
     
     for alert in alerts:
@@ -302,3 +302,47 @@ def smart_dispatch(request):
     dispatch_list.sort(key=lambda x: x['triage_score'], reverse=True)
     return render(request, 'monitoring/smart_dispatch.html', {'dispatch_list': dispatch_list})
 
+
+def dispatch_van(request, alert_id):
+    """DISPATCH LIFECYCLE STEP 1: Send recovery team and notify them via SMS."""
+    alert = get_object_or_404(Alert, id=alert_id)
+    if request.method == 'POST' and not alert.dispatched:
+        alert.dispatched = True
+        alert.dispatched_at = timezone.now()
+        alert.dispatched_team_notified = True
+        alert.save()
+
+        # --- SIMULATED SMS TO RECOVERY TEAM ---
+        # In production, this would use the Twilio API:
+        #   client.messages.create(
+        #       body=f"URGENT: Mobile Testing Van dispatched to {alert.village}. Risk: {alert.risk_score}%. Report immediately.",
+        #       from_='+1WSPNUMBER', to='+91TEAMLEAD'
+        #   )
+        team_sms = f"[SMS SENT TO RECOVERY TEAM] URGENT WSP Dispatch: Mobile Testing Van dispatched to {alert.village}, {alert.district}. Contamination Risk: {alert.risk_score}%. Triage Priority: HIGH. Report to site immediately."
+        print(team_sms)  # Logged in server console for hackathon demo
+
+    return redirect('smart_dispatch')
+
+
+def resolve_dispatch(request, alert_id):
+    """DISPATCH LIFECYCLE STEP 2: Problem solved. Notify public via SMS."""
+    alert = get_object_or_404(Alert, id=alert_id)
+    if request.method == 'POST' and alert.dispatched and not alert.resolved:
+        alert.resolved = True
+        alert.resolved_at = timezone.now()
+        alert.public_notified = True
+        if request.user.is_authenticated:
+            alert.resolved_by = request.user
+        alert.save()
+
+        # --- SIMULATED SMS TO PUBLIC ---
+        # In production, this would broadcast to all registered phone numbers in the village:
+        #   for contact in VillageContacts.objects.filter(village=alert.village):
+        #       client.messages.create(
+        #           body=f"WSP SAFETY ALERT: Water in {alert.village} has been tested and is now SAFE...",
+        #           from_='+1WSPNUMBER', to=contact.phone
+        #       )
+        public_sms = f"[SMS BROADCAST TO PUBLIC] WSP Safety Update for {alert.village}, {alert.district}: Water contamination issue has been RESOLVED by the government recovery team. Water is now SAFE for consumption. Thank you for your patience. - Dept. of Water Sanitation, TN"
+        print(public_sms)  # Logged in server console for hackathon demo
+
+    return redirect('smart_dispatch')

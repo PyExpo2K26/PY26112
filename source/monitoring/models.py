@@ -128,10 +128,18 @@ class Alert(models.Model):
     risk_score = models.FloatField()
     alert_level = models.CharField(max_length=20, choices=ALERT_LEVELS)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # Dispatch Lifecycle
+    dispatched = models.BooleanField(default=False)
+    dispatched_at = models.DateTimeField(null=True, blank=True)
+    dispatched_team_notified = models.BooleanField(default=False)
+
     resolved = models.BooleanField(default=False)
+    resolved_at = models.DateTimeField(null=True, blank=True)
     resolved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,
                                     blank=True, related_name='resolved_alerts')
     resolution_notes = models.TextField(blank=True)
+    public_notified = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.alert_level} Alert - {self.village}"
