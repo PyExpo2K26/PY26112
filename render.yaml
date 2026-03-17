@@ -1,0 +1,17 @@
+# render.yaml — Render Blueprint for WSP
+# https://docs.render.com/infrastructure-as-code
+services:
+  - type: web
+    name: water-surveillance-portal
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "cd source && gunicorn water_portal.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com"
