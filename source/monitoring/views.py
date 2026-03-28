@@ -1,4 +1,6 @@
 import json
+import math
+import requests as http_requests
 from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
@@ -346,3 +348,110 @@ def resolve_dispatch(request, alert_id):
         print(public_sms)  # Logged in server console for hackathon demo
 
     return redirect('smart_dispatch')
+
+
+def _haversine(lat1, lon1, lat2, lon2):
+    """Calculate the great-circle distance (km) between two points on Earth."""
+    R = 6371  # Earth radius in km
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = (math.sin(dlat / 2) ** 2 +
+         math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) *
+         math.sin(dlon / 2) ** 2)
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def nearby_sources(request):
+    """Pinpoint user location via IP/GPS and find nearby water sources on a satellite map."""
+    RADIUS_KM = 100  # Expanded search radius
+
+    # --- Step 1: Get user IP ---
+    x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded:
+        ip = x_forwarded.split(',')[0].strip()
+    else:
+        ip = request.META.get('REMOTE_ADDR', '')
+
+    # --- Step 2: Geolocate via ip-api.com ---
+    user_lat, user_lon = 11.0168, 76.9558  # Default: Coimbatore
+    city, region, country = 'Coimbatore', 'Tamil Nadu', 'India'
+    geo_success = False
+
+    private_prefixes = ('127.', '10.', '192.168.', '172.', '::1', 'localhost')
+    if ip and not ip.startswith(private_prefixes):
+        try:
+            resp = http_requests.get(f'http://ip-api.com/json/{ip}', timeout=5)
+            data = resp.json()
+            if data.get('status') == 'success':
+                user_lat = data.get('lat', user_lat)
+                user_lon = data.get('lon', user_lon)
+                city = data.get('city', city)
+                region = data.get('regionName', region)
+                country = data.get('country', country)
+                geo_success = True
+        except Exception:
+            pass  # Fall back to defaults
+
+    # --- Step 3: Find nearby water samples ---
+    nearby = _find_nearby_samples(user_lat, user_lon, RADIUS_KM)
+
+    context = {
+        'user_lat': user_lat,
+        'user_lon': user_lon,
+        'city': city,
+        'region': region,
+        'country': country,
+        'geo_success': geo_success,
+        'ip': ip,
+        'radius_km': RADIUS_KM,
+        'nearby_sources': nearby,
+        'nearby_json': json.dumps(nearby),
+        'total_nearby': len(nearby),
+    }
+    return render(request, 'monitoring/nearby_sources.html', context)
+
+
+def _find_nearby_samples(user_lat, user_lon, radius_km):
+    """Find water samples within radius_km of (user_lat, user_lon)."""
+    samples = WaterSample.objects.all()
+    nearby = []
+    for s in samples:
+        try:
+            dist = _haversine(user_lat, user_lon, s.latitude, s.longitude)
+        except (TypeError, ValueError):
+            continue
+        if dist <= radius_km:
+            risk = s.risk_score or 0
+            if risk > 70:
+                color = 'red'
+                level = 'High Risk'
+            elif risk >= 30:
+                color = 'orange'
+                level = 'Moderate'
+            else:
+                color = 'green'
+                level = 'Safe'
+            nearby.append({
+                'id': s.id,
+                'village': s.village,
+                'district': s.district,
+                'latitude': s.latitude,
+                'longitude': s.longitude,
+                'distance_km': round(dist, 1),
+                'risk_score': round(risk, 1),
+                'color': color,
+                'level': level,
+                'water_source': s.water_source,
+                'date': s.date_collected.strftime('%Y-%m-%d') if s.date_collected else '',
+            })
+    nearby.sort(key=lambda x: x['distance_km'])
+    return nearby
+
+
+def nearby_sources_api(request):
+    """JSON API: Re-fetch nearby sources for a given GPS coordinate."""
+    lat = float(request.GET.get('lat', 11.0168))
+    lon = float(request.GET.get('lon', 76.9558))
+    radius = float(request.GET.get('radius', 100))
+    nearby = _find_nearby_samples(lat, lon, radius)
+    return JsonResponse({'sources': nearby, 'total': len(nearby)})

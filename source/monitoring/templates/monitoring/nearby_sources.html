@@ -1,0 +1,846 @@
+{% extends "monitoring/base.html" %}
+
+{% block nav_nearby %}active{% endblock %}
+{% block tb %}Nearby Water Sources — Live Tracker{% endblock %}
+
+{% block content %}
+<style>
+    /* ── Rapido-Style Live Tracker UI ── */
+    .tracker-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .tracker-header h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .live-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #dc2626;
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+    .live-badge .live-dot {
+        width: 8px; height: 8px;
+        background: #dc2626;
+        border-radius: 50%;
+        animation: livePulse 1.5s infinite;
+    }
+    @keyframes livePulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(0.7); }
+    }
+    .tracker-stats {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .mini-stat {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 18px;
+        text-align: center;
+        min-width: 100px;
+    }
+    .mini-stat .ms-val {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+    .mini-stat .ms-label {
+        font-size: 0.65rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .mini-stat.accent .ms-val { color: var(--accent); }
+    .mini-stat.danger .ms-val { color: var(--danger); }
+
+    /* ── Location Bar (Rapido-style) ── */
+    .location-bar {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: linear-gradient(135deg, #0f2847, #0a3259);
+        border-radius: var(--radius-md);
+        padding: 14px 20px;
+        margin-bottom: 16px;
+        color: #fff;
+    }
+    .location-bar .loc-pin {
+        width: 42px; height: 42px;
+        background: linear-gradient(135deg, #00b4d8, #0096c7);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem;
+        box-shadow: 0 0 20px rgba(0, 180, 216, 0.4);
+        flex-shrink: 0;
+        animation: pinGlow 2s ease-in-out infinite;
+    }
+    @keyframes pinGlow {
+        0%, 100% { box-shadow: 0 0 20px rgba(0, 180, 216, 0.4); }
+        50% { box-shadow: 0 0 30px rgba(0, 180, 216, 0.7); }
+    }
+    .location-bar .loc-info h3 {
+        font-size: 1rem; font-weight: 700; margin-bottom: 1px;
+    }
+    .location-bar .loc-info p {
+        font-size: 0.78rem; color: rgba(255,255,255,0.6);
+    }
+    .location-bar .loc-info .coord-mono {
+        font-family: 'Courier New', monospace;
+        font-size: 0.72rem;
+        color: rgba(255,255,255,0.45);
+    }
+    .location-bar .loc-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 8px;
+    }
+    .btn-locate {
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-locate:hover { background: rgba(255,255,255,0.2); }
+    .btn-locate.active { background: rgba(0, 180, 216, 0.3); border-color: var(--accent); }
+
+    /* ── Full-Bleed Map ── */
+    #nearby-map {
+        width: 100%;
+        height: 520px;
+        border-radius: var(--radius-lg);
+        border: 2px solid var(--border);
+        box-shadow: var(--shadow-lg);
+        z-index: 1;
+    }
+    .map-container {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    /* Map overlay controls */
+    .map-controls {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        z-index: 500;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .map-ctrl-btn {
+        width: 40px; height: 40px;
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        transition: all 0.2s;
+    }
+    .map-ctrl-btn:hover { transform: scale(1.08); box-shadow: 0 4px 16px rgba(0,0,0,0.18); }
+    .map-ctrl-btn.active { background: var(--primary); color: #fff; }
+
+    /* Map legend overlay */
+    .map-legend {
+        position: absolute;
+        bottom: 14px;
+        left: 14px;
+        background: rgba(15, 40, 71, 0.92);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 12px 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        z-index: 500;
+        font-size: 0.75rem;
+        color: #fff;
+    }
+    .map-legend .legend-title {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(255,255,255,0.5);
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+    .legend-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+    .legend-row:last-child { margin-bottom: 0; }
+    .legend-dot {
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        border: 1.5px solid rgba(255,255,255,0.3);
+    }
+
+    /* GPS status toast */
+    .gps-toast {
+        position: absolute;
+        top: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(15, 40, 71, 0.92);
+        backdrop-filter: blur(10px);
+        color: #fff;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        z-index: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        transition: all 0.3s;
+        opacity: 0;
+        pointer-events: none;
+    }
+    .gps-toast.show { opacity: 1; pointer-events: auto; }
+    .gps-toast .spinner {
+        width: 14px; height: 14px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Table ── */
+    .risk-dot {
+        display: inline-block;
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        margin-right: 6px;
+    }
+    .dist-val { font-weight: 700; color: var(--primary); }
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state h3 { font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 8px; }
+    .empty-state p { font-size: 0.9rem; color: var(--text-muted); }
+
+    /* Pulse animation for "you are here" marker */
+    @keyframes markerPulse {
+        0% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(3); opacity: 0; }
+    }
+    .pulse-ring {
+        position: absolute;
+        width: 24px; height: 24px;
+        border-radius: 50%;
+        background: rgba(0, 180, 216, 0.4);
+        animation: markerPulse 2s ease-out infinite;
+    }
+
+    /* ── Water Source Type Cards ── */
+    .source-types-section {
+        margin-bottom: 24px;
+    }
+    .source-types-section h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 14px;
+    }
+    .source-types-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 14px;
+    }
+    .source-type-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 18px;
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .source-type-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+    }
+    .source-type-card .st-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+    .source-type-card .st-icon {
+        width: 38px; height: 38px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    .source-type-card .st-name {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    .source-type-card .st-count {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+    .source-type-card .st-desc {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+    .source-type-card .st-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        border-radius: 0 0 12px 12px;
+        transition: width 0.6s ease;
+    }
+</style>
+
+<!-- Leaflet CSS + JS from CDN -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Header -->
+<div class="tracker-header">
+    <h1>
+        📍 Nearby Water Sources
+        <span class="live-badge"><span class="live-dot"></span> Live</span>
+    </h1>
+    <div class="tracker-stats">
+        <div class="mini-stat">
+            <div class="ms-val" id="stat-radius">{{ radius_km }}</div>
+            <div class="ms-label">KM Radius</div>
+        </div>
+        <div class="mini-stat accent">
+            <div class="ms-val" id="stat-count">{{ total_nearby }}</div>
+            <div class="ms-label">Sources</div>
+        </div>
+        <div class="mini-stat danger">
+            <div class="ms-val" id="stat-highrisk">0</div>
+            <div class="ms-label">High Risk</div>
+        </div>
+    </div>
+</div>
+
+<!-- Location Bar -->
+<div class="location-bar">
+    <div class="loc-pin">📍</div>
+    <div class="loc-info">
+        <h3 id="loc-city">{{ city }}, {{ region }}</h3>
+        <p id="loc-country">{{ country }}{% if ip %} · IP: {{ ip }}{% endif %}</p>
+        <div class="coord-mono" id="loc-coords">{{ user_lat }}°N, {{ user_lon }}°E</div>
+    </div>
+    <div class="loc-actions">
+        <button class="btn-locate" id="btn-gps" onclick="activateGPS()">
+            🛰️ Use GPS
+        </button>
+        <button class="btn-locate" id="btn-satellite" onclick="toggleSatellite()">
+            🗺️ Satellite
+        </button>
+    </div>
+</div>
+
+<!-- Map -->
+<div class="map-container">
+    <div id="nearby-map"></div>
+
+    <!-- GPS Status Toast -->
+    <div class="gps-toast" id="gps-toast">
+        <div class="spinner"></div>
+        <span id="gps-toast-text">Acquiring GPS signal...</span>
+    </div>
+
+    <!-- Custom Map Controls -->
+    <div class="map-controls">
+        <div class="map-ctrl-btn" onclick="recenterMap()" title="Re-center on location">🎯</div>
+        <div class="map-ctrl-btn" onclick="toggleSatellite()" id="sat-toggle" title="Toggle satellite view">🛰️</div>
+    </div>
+
+    <!-- Legend -->
+    <div class="map-legend">
+        <div class="legend-title">Water Quality</div>
+        <div class="legend-row"><span class="legend-dot" style="background:#00b4d8;box-shadow:0 0 8px rgba(0,180,216,0.5);"></span> Your Location</div>
+        <div class="legend-row"><span class="legend-dot" style="background:#10b981;"></span> Safe (&lt; 30%)</div>
+        <div class="legend-row"><span class="legend-dot" style="background:#f59e0b;"></span> Moderate (30-70%)</div>
+        <div class="legend-row"><span class="legend-dot" style="background:#ef4444;"></span> High Risk (&gt; 70%)</div>
+    </div>
+</div>
+
+<!-- Water Source Types (Daily Life) -->
+<div class="source-types-section">
+    <h3>🚰 Water Source Types in Your Area</h3>
+    <div class="source-types-grid" id="source-types-grid">
+        <div class="source-type-card">
+            <div class="st-header">
+                <div class="st-icon" style="background:rgba(59,130,246,0.1);">🔵</div>
+                <div>
+                    <div class="st-name">Borewell</div>
+                    <div class="st-count" id="count-borewell">—</div>
+                </div>
+            </div>
+            <div class="st-desc">Primary groundwater source for drinking & cooking in rural households. Drilled 100-500ft deep.</div>
+            <div class="st-bar" style="background:#3b82f6;width:0%;" id="bar-borewell"></div>
+        </div>
+        <div class="source-type-card">
+            <div class="st-header">
+                <div class="st-icon" style="background:rgba(14,165,233,0.1);">🏞️</div>
+                <div>
+                    <div class="st-name">River</div>
+                    <div class="st-count" id="count-river">—</div>
+                </div>
+            </div>
+            <div class="st-desc">Surface water used for irrigation, bathing & municipal supply. High contamination risk from runoff.</div>
+            <div class="st-bar" style="background:#0ea5e9;width:0%;" id="bar-river"></div>
+        </div>
+        <div class="source-type-card">
+            <div class="st-header">
+                <div class="st-icon" style="background:rgba(6,182,212,0.1);">🌊</div>
+                <div>
+                    <div class="st-name">Lake</div>
+                    <div class="st-count" id="count-lake">—</div>
+                </div>
+            </div>
+            <div class="st-desc">Standing freshwater body. Used for community washing, fishing & backup drinking water during drought.</div>
+            <div class="st-bar" style="background:#06b6d4;width:0%;" id="bar-lake"></div>
+        </div>
+        <div class="source-type-card">
+            <div class="st-header">
+                <div class="st-icon" style="background:rgba(16,185,129,0.1);">🚿</div>
+                <div>
+                    <div class="st-name">Tapwater</div>
+                    <div class="st-count" id="count-tapwater">—</div>
+                </div>
+            </div>
+            <div class="st-desc">Municipal piped water for daily cooking, drinking & sanitation. Chlorinated but quality varies by area.</div>
+            <div class="st-bar" style="background:#10b981;width:0%;" id="bar-tapwater"></div>
+        </div>
+        <div class="source-type-card">
+            <div class="st-header">
+                <div class="st-icon" style="background:rgba(168,85,247,0.1);">🏛️</div>
+                <div>
+                    <div class="st-name">Panchayat Supply</div>
+                    <div class="st-count" id="count-panchayat">—</div>
+                </div>
+            </div>
+            <div class="st-desc">Government-supplied water via overhead tanks. Distributed to villages on scheduled timings daily.</div>
+            <div class="st-bar" style="background:#a855f7;width:0%;" id="bar-panchayat"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Nearby Sources Table -->
+<div class="card" id="sources-card">
+    <h3 style="margin-bottom:16px; font-size:1.05rem; font-weight:700; color:var(--text-primary);">
+        🗂️ Nearby Water Sources (<span id="table-count">{{ total_nearby }}</span>)
+    </h3>
+    <div style="overflow-x:auto;" id="sources-table-wrapper">
+        {% if nearby_sources %}
+        <table class="tbl" id="sources-table">
+            <thead>
+                <tr>
+                    <th>Village</th>
+                    <th>District</th>
+                    <th>Distance</th>
+                    <th>Risk Score</th>
+                    <th>Status</th>
+                    <th>Source Type</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="sources-tbody">
+                {% for src in nearby_sources %}
+                <tr>
+                    <td style="font-weight:600;">{{ src.village }}</td>
+                    <td>{{ src.district }}</td>
+                    <td><span class="dist-val">{{ src.distance_km }} km</span></td>
+                    <td>{{ src.risk_score }}%</td>
+                    <td>
+                        <span class="risk-dot" style="background:{{ src.color }};"></span>
+                        <span class="badge {% if src.color == 'red' %}b-red{% elif src.color == 'orange' %}b-yellow{% else %}b-green{% endif %}">
+                            {{ src.level }}
+                        </span>
+                    </td>
+                    <td>{{ src.water_source }}</td>
+                    <td>{{ src.date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state" id="empty-state">
+            <div class="empty-icon">🔍</div>
+            <h3>No Water Sources Found Nearby</h3>
+            <p>Try clicking <strong>"🛰️ Use GPS"</strong> for a more accurate location.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+(function() {
+    // ── State ──
+    let userLat = {{ user_lat }};
+    let userLon = {{ user_lon }};
+    let sources = {{ nearby_json|safe }};
+    let isSatellite = true;  // Start with satellite
+    let gpsWatchId = null;
+    let userMarker = null;
+    let userCircle = null;
+    let pulseMarker = null;
+    let sourceMarkers = [];
+
+    // ── Tile Layers ──
+    const satelliteTiles = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        attribution: 'Esri World Imagery'
+    });
+
+    const streetTiles = L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    });
+
+    // Satellite labels overlay
+    const labelsTiles = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        opacity: 0.7
+    });
+    const placeLabels = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        opacity: 0.9
+    });
+
+    // ── Initialize Map ──
+    const map = L.map('nearby-map', {
+        zoomControl: false,
+        attributionControl: false
+    }).setView([userLat, userLon], 13);
+
+    // Start with satellite
+    satelliteTiles.addTo(map);
+    labelsTiles.addTo(map);
+    placeLabels.addTo(map);
+
+    // Zoom control bottom-right
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // ── User Marker (Rapido-style pulsing) ──
+    function createUserMarker(lat, lon) {
+        if (userMarker) map.removeLayer(userMarker);
+        if (pulseMarker) map.removeLayer(pulseMarker);
+        if (userCircle) map.removeLayer(userCircle);
+
+        // Pulsing ring
+        const pulseIcon = L.divIcon({
+            className: '',
+            html: `<div style="position:relative;width:24px;height:24px;">
+                <div class="pulse-ring"></div>
+                <div style="
+                    position:absolute; top:4px; left:4px;
+                    width:16px; height:16px;
+                    background: linear-gradient(135deg, #00b4d8, #0096c7);
+                    border: 3px solid #fff;
+                    border-radius: 50%;
+                    box-shadow: 0 0 12px rgba(0, 180, 216, 0.6), 0 2px 8px rgba(0,0,0,0.3);
+                "></div>
+            </div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
+        userMarker = L.marker([lat, lon], { icon: pulseIcon, zIndexOffset: 1000 })
+            .addTo(map)
+            .bindPopup(`<div style="text-align:center;">
+                <strong>📍 Your Location</strong><br>
+                <span style="color:#64748b;font-size:0.85rem;" id="popup-coords">${lat.toFixed(5)}°N, ${lon.toFixed(5)}°E</span><br>
+                <span style="color:#00b4d8;font-size:0.78rem;font-weight:600;">
+                    ${gpsWatchId ? '🛰️ GPS Active' : '🌐 IP-Based'}
+                </span>
+            </div>`);
+
+        // Radius circle
+        userCircle = L.circle([lat, lon], {
+            radius: {{ radius_km }} * 1000,
+            color: '#00b4d8',
+            fillColor: '#00b4d8',
+            fillOpacity: 0.06,
+            weight: 1.5,
+            dashArray: '8, 6'
+        }).addTo(map);
+    }
+
+    // ── Source Markers ──
+    const colorMap = { 'red': '#ef4444', 'orange': '#f59e0b', 'green': '#10b981' };
+
+    function renderSourceMarkers(data) {
+        // Clear old markers
+        sourceMarkers.forEach(m => map.removeLayer(m));
+        sourceMarkers = [];
+
+        let highRiskCount = 0;
+
+        data.forEach(src => {
+            const color = colorMap[src.color] || '#64748b';
+            if (src.color === 'red') highRiskCount++;
+
+            const icon = L.divIcon({
+                className: '',
+                html: `<div style="
+                    width: 16px; height: 16px;
+                    background: ${color};
+                    border: 2.5px solid rgba(255,255,255,0.9);
+                    border-radius: 50%;
+                    box-shadow: 0 0 8px ${color}80, 0 2px 6px rgba(0,0,0,0.3);
+                "></div>`,
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+
+            const marker = L.marker([src.latitude, src.longitude], { icon: icon })
+                .addTo(map)
+                .bindPopup(`
+                    <div style="min-width:180px;">
+                        <strong style="font-size:1rem;">${src.village}</strong><br>
+                        <span style="color:#64748b;font-size:0.85rem;">${src.district}</span><br>
+                        <hr style="margin:6px 0;border:none;border-top:1px solid #e2e8f0;">
+                        <div style="display:flex;justify-content:space-between;margin:4px 0;">
+                            <span style="color:#94a3b8;font-size:0.78rem;">Risk:</span>
+                            <span style="color:${color};font-weight:700;">${src.risk_score}% (${src.level})</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin:4px 0;">
+                            <span style="color:#94a3b8;font-size:0.78rem;">Distance:</span>
+                            <strong>${src.distance_km} km</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin:4px 0;">
+                            <span style="color:#94a3b8;font-size:0.78rem;">Source:</span>
+                            <span>${src.water_source}</span>
+                        </div>
+                        <div style="color:#94a3b8;font-size:0.72rem;margin-top:4px;">Collected: ${src.date}</div>
+                    </div>
+                `);
+            sourceMarkers.push(marker);
+        });
+
+        // Update stats
+        document.getElementById('stat-count').textContent = data.length;
+        document.getElementById('stat-highrisk').textContent = highRiskCount;
+        document.getElementById('table-count').textContent = data.length;
+    }
+
+    // ── Update Table Dynamically ──
+    function updateTable(data) {
+        const wrapper = document.getElementById('sources-table-wrapper');
+        if (data.length === 0) {
+            wrapper.innerHTML = `<div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <h3>No Water Sources Found Nearby</h3>
+                <p>No recorded water samples within the search radius of your current location.</p>
+            </div>`;
+            return;
+        }
+        const badgeClass = {'red':'b-red','orange':'b-yellow','green':'b-green'};
+        let html = `<table class="tbl"><thead><tr>
+            <th>Village</th><th>District</th><th>Distance</th>
+            <th>Risk Score</th><th>Status</th><th>Source Type</th><th>Date</th>
+        </tr></thead><tbody>`;
+        data.forEach(src => {
+            html += `<tr>
+                <td style="font-weight:600;">${src.village}</td>
+                <td>${src.district}</td>
+                <td><span class="dist-val">${src.distance_km} km</span></td>
+                <td>${src.risk_score}%</td>
+                <td>
+                    <span class="risk-dot" style="background:${src.color};"></span>
+                    <span class="badge ${badgeClass[src.color] || ''}">${src.level}</span>
+                </td>
+                <td>${src.water_source}</td>
+                <td>${src.date}</td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+        wrapper.innerHTML = html;
+    }
+
+    // ── GPS Location ──
+    window.activateGPS = function() {
+        const btn = document.getElementById('btn-gps');
+        const toast = document.getElementById('gps-toast');
+        const toastText = document.getElementById('gps-toast-text');
+
+        if (!navigator.geolocation) {
+            toastText.textContent = '❌ GPS not supported by your browser';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+            return;
+        }
+
+        btn.classList.add('active');
+        btn.innerHTML = '🛰️ GPS Active';
+        toastText.textContent = 'Acquiring GPS signal...';
+        toast.classList.add('show');
+
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                userLat = pos.coords.latitude;
+                userLon = pos.coords.longitude;
+
+                // Update UI
+                document.getElementById('loc-city').textContent = 'GPS Location';
+                document.getElementById('loc-country').textContent = 'Real-time satellite positioning';
+                document.getElementById('loc-coords').textContent =
+                    userLat.toFixed(5) + '°N, ' + userLon.toFixed(5) + '°E';
+
+                toastText.textContent = '✅ GPS locked — Fetching nearby sources...';
+
+                // Re-center map
+                createUserMarker(userLat, userLon);
+                map.flyTo([userLat, userLon], 14, { duration: 1.5 });
+
+                // Fetch new sources from API
+                fetch(`/nearby/api/?lat=${userLat}&lon=${userLon}&radius={{ radius_km }}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        sources = data.sources;
+                        renderSourceMarkers(sources);
+                        updateTable(sources);
+                        updateSourceTypeCounts(sources);
+                        toastText.textContent = `✅ Found ${data.total} water sources near you`;
+                        setTimeout(() => toast.classList.remove('show'), 2500);
+
+                        // Fit bounds
+                        if (sources.length > 0) {
+                            const pts = [[userLat, userLon], ...sources.map(s => [s.latitude, s.longitude])];
+                            map.fitBounds(pts, { padding: [50, 50], maxZoom: 14 });
+                        }
+                    })
+                    .catch(() => {
+                        toastText.textContent = '⚠️ Could not fetch sources. Using cached data.';
+                        setTimeout(() => toast.classList.remove('show'), 3000);
+                    });
+            },
+            function(err) {
+                toastText.textContent = '⚠️ GPS denied — Using IP location';
+                btn.classList.remove('active');
+                btn.innerHTML = '🛰️ Use GPS';
+                setTimeout(() => toast.classList.remove('show'), 3000);
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    };
+
+    // ── Satellite Toggle ──
+    window.toggleSatellite = function() {
+        const satBtn = document.getElementById('sat-toggle');
+        const barBtn = document.getElementById('btn-satellite');
+        if (isSatellite) {
+            map.removeLayer(satelliteTiles);
+            map.removeLayer(labelsTiles);
+            map.removeLayer(placeLabels);
+            streetTiles.addTo(map);
+            satBtn.classList.remove('active');
+            barBtn.textContent = '🛰️ Satellite';
+            isSatellite = false;
+        } else {
+            map.removeLayer(streetTiles);
+            satelliteTiles.addTo(map);
+            labelsTiles.addTo(map);
+            placeLabels.addTo(map);
+            satBtn.classList.add('active');
+            barBtn.textContent = '🗺️ Street';
+            isSatellite = true;
+        }
+    };
+
+    // ── Recenter ──
+    window.recenterMap = function() {
+        map.flyTo([userLat, userLon], 14, { duration: 1 });
+    };
+
+    // ── Update Source Type Cards ──
+    function updateSourceTypeCounts(data) {
+        const typeCounts = {};
+        const typeMap = {
+            'Borewell': { el: 'borewell', color: '#3b82f6' },
+            'River': { el: 'river', color: '#0ea5e9' },
+            'Lake': { el: 'lake', color: '#06b6d4' },
+            'Tapwater': { el: 'tapwater', color: '#10b981' },
+            'Panchayat Supply': { el: 'panchayat', color: '#a855f7' },
+        };
+        data.forEach(s => {
+            typeCounts[s.water_source] = (typeCounts[s.water_source] || 0) + 1;
+        });
+        const total = data.length || 1;
+        Object.entries(typeMap).forEach(([name, cfg]) => {
+            const count = typeCounts[name] || 0;
+            const countEl = document.getElementById('count-' + cfg.el);
+            const barEl = document.getElementById('bar-' + cfg.el);
+            if (countEl) countEl.textContent = count + ' source' + (count !== 1 ? 's' : '') + ' nearby';
+            if (barEl) barEl.style.width = Math.round((count / total) * 100) + '%';
+        });
+    }
+
+    // ── Initial Render ──
+    createUserMarker(userLat, userLon);
+    renderSourceMarkers(sources);
+    updateSourceTypeCounts(sources);
+
+    // Count initial high risk
+    let hr = 0;
+    sources.forEach(s => { if (s.color === 'red') hr++; });
+    document.getElementById('stat-highrisk').textContent = hr;
+
+    // Fit bounds if sources exist
+    if (sources.length > 0) {
+        const allPts = [[userLat, userLon], ...sources.map(s => [s.latitude, s.longitude])];
+        map.fitBounds(allPts, { padding: [50, 50], maxZoom: 14 });
+    }
+
+    // Mark satellite button as active initially
+    document.getElementById('sat-toggle').classList.add('active');
+
+    // ── AUTO-REQUEST GPS on page load ──
+    setTimeout(function() { activateGPS(); }, 800);
+})();
+</script>
+{% endblock %}
