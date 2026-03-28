@@ -78,6 +78,7 @@ A village with 10,000 people at 80% risk will rightfully be prioritized over a v
 3.  **Alerts Intelligence:** Automatically segregates water sources into Safe (Green), Moderate Risk (Yellow), and High Risk (Red).
 4.  **Smart Insights:** The AI generates an English-language analysis for every sample, detailing the **Cause** (e.g., "Agricultural runoff"), **Effect** (e.g., "Blue baby syndrome"), and **Immediate Remedy** (e.g., "Implement Reverse Osmosis").
 5.  **Offline SMS Fallback:** In deep rural pockets with no 4G internet, officers can submit sample data via a formatted syntax SMS (simulated via Twilio Webhook), ensuring zero drop-off in surveillance capabilities.
+6.  **Nearby Water Sources (Live Tracker):** An interactive satellite map (Esri World Imagery) that automatically requests the user's GPS location, pinpoints their position with a Rapido-style pulsing marker, and displays all water sample sources within a 100 km radius — color-coded by contamination risk (Green/Yellow/Red). Includes a breakdown of daily-use water source types: **Borewell**, **River**, **Lake**, **Tapwater**, and **Panchayat Supply**, each with live counts of nearby sources. Falls back to IP-based geolocation when GPS is unavailable.
 
 ---
 
