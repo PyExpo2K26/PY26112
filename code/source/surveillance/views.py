@@ -8,7 +8,7 @@ from django.conf import settings
 from .models import Village, HealthReport
 
 try:
-    with open(os.path.join(settings.BASE_DIR, 'model.pkl'), 'rb') as f:
+    with open(os.path.join(settings.BASE_DIR, 'backend', 'model.pkl'), 'rb') as f:
         ml_model = pickle.load(f)
 except FileNotFoundError:
     ml_model = None
