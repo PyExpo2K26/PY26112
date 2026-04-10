@@ -7,6 +7,35 @@ Instead of relying on expensive, physical IoT hardware sensors (which are unsust
 
 ---
 
+## 📁 Project Structure
+
+```
+PY26112/
+├── code/                          # All application source code
+│   ├── Backend/                   # ML training scripts & notebooks
+│   │   ├── MLnotebooks/           # Jupyter notebooks, datasets & model artifacts
+│   │   ├── train_simplified.py
+│   │   └── train_waterborne_model.py
+│   ├── source/                    # Django web application
+│   │   ├── manage.py
+│   │   ├── water_portal/          # Django project settings & config
+│   │   ├── monitoring/            # Core app — samples, alerts, risk engine
+│   │   ├── surveillance/          # Surveillance dashboard app
+│   │   ├── ml/                    # ML training scripts
+│   │   └── backend/               # Serialized model artifacts
+│   └── project_status_report.md
+├── docs/                          # Documentation & media
+│   ├── README.md                  # ← You are here
+│   ├── requirements.txt           # Python dependencies
+│   └── minihack1.mp4              # Project demo video
+├── build.sh                       # Render build script
+├── render.yaml                    # Render deployment blueprint
+├── pyrightconfig.json             # Python type-checking config
+└── .gitignore
+```
+
+---
+
 ## 🔬 Methodology & Core Architecture
 
 The system is built on a multi-layered intelligence architecture that correlates environmental chemistry with community health data.
@@ -20,7 +49,7 @@ Field officers collect and submit water samples across 18 distinct physical, che
 *   **Biological:** Presence of E.coli (Fecal coliforms)
 
 ### 2. The Hybrid AI Risk Engine
-The core intelligence (`risk_engine.py`) uses a two-pronged approach to assess danger:
+The core intelligence (`code/source/monitoring/risk_engine.py`) uses a two-pronged approach to assess danger:
 
 **A. Deterministic Contamination Index (CI)**
 A strict rules-based engine calculates a base CI score (0-100). Crucial safety thresholds inherently boost the CI:
@@ -96,11 +125,11 @@ A village with 10,000 people at 80% risk will rightfully be prioritized over a v
    ```
 2. **Install Dependencies:**
    ```bash
-   pip install -r requirements.txt
+   pip install -r docs/requirements.txt
    ```
 3. **Database Migrations:**
    ```bash
-   cd source
+   cd code/source
    python manage.py makemigrations
    python manage.py migrate
    ```
@@ -116,7 +145,7 @@ The repository is fully configured for one-click deployment on Render.com's PaaS
 
 1.  Connect your GitHub repository to Render as a new **Web Service**.
 2.  **Build Command:** `./build.sh`
-3.  **Start Command:** `cd source && gunicorn water_portal.wsgi:application`
+3.  **Start Command:** `cd code/source && gunicorn water_portal.wsgi:application`
 4.  **Environment Variables:**
     *   `PYTHON_VERSION` = `3.12.3`
     *   `DJANGO_SECRET_KEY` = `(Generate Random)`

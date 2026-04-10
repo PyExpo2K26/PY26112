@@ -3,10 +3,10 @@
 set -o errexit
 
 # Install Python dependencies
-pip install -r requirements.txt
+pip install -r docs/requirements.txt
 
 # Navigate to Django source directory
-cd source
+cd code/source
 
 # Collect static files
 python manage.py collectstatic --no-input

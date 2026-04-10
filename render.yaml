@@ -5,7 +5,7 @@ services:
     name: water-surveillance-portal
     runtime: python
     buildCommand: "./build.sh"
-    startCommand: "cd source && gunicorn water_portal.wsgi:application"
+    startCommand: "cd code/source && gunicorn water_portal.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.3"
